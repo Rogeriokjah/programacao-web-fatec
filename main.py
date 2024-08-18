@@ -4,6 +4,6 @@ app = Flask(__name__)
 
 @app.route('/') # Devido ao decorador, a função abaixo será executada automaticamente ao chegar nesta rota.
 def home():
-    return render_template("index.html", variavel="Variavel no jinja é meio paia") # render_template pega arquivos da pasta "templates"
+    return render_template("index.html", variavel="Oieeee", subtitulo="Variável no Jinja") # render_template pega arquivos da pasta "templates"
 
 app.run(debug=True) # ao definir debug como True, a aplicação será recarregada sempre que uma alteração ocorrer
