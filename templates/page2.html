@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Página 2</title>
 </head>
-<body>
+<body style="font-size: 20px;">
     {% if user %}
         <h1>Olá, {{ user }}! Tudo bem com você?</h1>
     
@@ -15,7 +15,16 @@
             {% else %} <p>Não está nada bem! :(</p>
         {% endif %}
 
-        {% else %} <h1 style="text-align:center; background-color: red">USUÁRIO NÃO AUTENTICADO!</h1>
+        <ul> 
+            <!-- Laço de repetição for -->
+            {% for i in range(11) %}
+                <li> {{i}} </li>
+            {% endfor %}
+        </ul>
+
+        {% else %} 
+            <h1 style="text-align:center; background-color: red">USUÁRIO NÃO AUTENTICADO!</h1>
     {% endif %}
+
 </body>
 </html>
