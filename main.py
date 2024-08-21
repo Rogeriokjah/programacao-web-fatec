@@ -8,7 +8,7 @@ def home():
 
 @app.route('/page2')
 def page2():
-    return render_template("page2.html", user="João", happy=True)
+    return render_template("page2.html", user="", happy=True)
 
 
 app.run(debug=True) # ao definir debug como True, a aplicação será recarregada sempre que uma alteração ocorrer

@@ -6,12 +6,16 @@
     <title>Página 2</title>
 </head>
 <body>
-    <h3>Olá, {{ user }}! Tudo bem com você?</h3>
+    {% if user %}
+        <h1>Olá, {{ user }}! Tudo bem com você?</h1>
+    
+        {% if happy %}
+            <p>Tudo sim, estou ótimo. :)</p>
 
-    {% if happy %}
-        <p>Tudo sim, estou ótimo. :)</p>
+            {% else %} <p>Não está nada bem! :(</p>
+        {% endif %}
 
-        {% else %} <p>Não está nada bem! :(</p>
+        {% else %} <h1 style="text-align:center; background-color: red">USUÁRIO NÃO AUTENTICADO!</h1>
     {% endif %}
 </body>
 </html>
