@@ -6,4 +6,9 @@ app = Flask(__name__)
 def home():
     return render_template("index.html", variavel="Oieeee", subtitulo="Variável no Jinja") # render_template pega arquivos da pasta "templates"
 
+@app.route('/page2')
+def page2():
+    return render_template("page2.html", user="João", happy=True)
+
+
 app.run(debug=True) # ao definir debug como True, a aplicação será recarregada sempre que uma alteração ocorrer

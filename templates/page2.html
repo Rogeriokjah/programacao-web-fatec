@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página 2</title>
+</head>
+<body>
+    <h3>Olá, {{ user }}! Tudo bem com você?</h3>
+
+    {% if happy %}
+        <p>Tudo sim, estou ótimo. :)</p>
+
+        {% else %} <p>Não está nada bem! :(</p>
+    {% endif %}
+</body>
+</html>
