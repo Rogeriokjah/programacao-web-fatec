@@ -2,13 +2,20 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-@app.route('/') # Devido ao decorador, a função abaixo será executada automaticamente ao chegar nesta rota.
-def home():
-    return render_template("index.html", variavel="Oieeee", subtitulo="Variável no Jinja") # render_template pega arquivos da pasta "templates"
+@app.route('/')
+def index():
+    return render_template("index.html")
 
-@app.route('/page2')
-def page2():
-    return render_template("page2.html", user="João", happy=True, num=20)
+@app.route('/contato')
+def contact():
+    return render_template("contact.html")
 
+@app.route('/servicos')
+def services():
+    return render_template("services.html")
 
-app.run(debug=True) # ao definir debug como True, a aplicação será recarregada sempre que uma alteração ocorrer
+@app.route('/sobre')
+def about():
+    return render_template("about.html")
+
+app.run(debug=True)
