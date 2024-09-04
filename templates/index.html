@@ -5,4 +5,15 @@
         <h2>Welcome to our website!</h2>
         <p>This is the homepage content.</p>
     </section>
+
+    <div style="text-align: center;">
+        <img src="./static/img.png" style="max-width: 200px;">      <!-- Rota absoluta -->
+        <p>Rota absoluta</p>
+    </div>
+
+    <div style="text-align: center;">
+        <img src={{ url_for('static', filename='img.png') }} style="max-width: 200px;"> <!-- Rota dinâmica -->
+        <p>Rota dinâmica</p>
+    </div>
+    
 {% endblock %}
