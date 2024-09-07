@@ -14,9 +14,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- External CSS -->
-    <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
-    <link rel="stylesheet" href="vendor/select2/select2.min.css">
-    <link rel="stylesheet" href="vendor/owlcarousel/owl.carousel.min.css">
+    <link rel="stylesheet" href="/static/vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/vendor/select2/select2.min.css">
+    <link rel="stylesheet" href="/static/vendor/owlcarousel/owl.carousel.min.css">
     <link rel="stylesheet" href="https://cdn.rawgit.com/noelboss/featherlight/1.7.13/release/featherlight.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/brands.css">
@@ -27,13 +27,13 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.min.css">
+    <link rel="stylesheet" href="static/css/style.min.css">
 
     <!-- Modernizr JS for IE8 support of HTML5 elements and media queries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.js"></script>
 
 </head>
-<body data-spy="scroll" data-target="#navbar">
+<body data-spy="scroll" data-target="#navbar" class="static-layout">
 	<div id="side-nav" class="sidenav">
 	<a href="javascript:void(0)" id="side-nav-close">&times;</a>
 	
@@ -69,7 +69,7 @@
 		<nav id="navbar-header" class="navbar navbar-expand-lg">
     <div class="container">
         <a class="navbar-brand navbar-brand-center d-flex align-items-center p-0 only-mobile" href="/">
-            <img src="img/logo.png" alt="">
+            <img src="/static/img/logo.png" alt="">
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="lnr lnr-menu"></span>
@@ -87,35 +87,35 @@
                         <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="about.html">About</a>
+                        <a class="nav-link" href="/about">About</a>
                     </li>
 
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="/special-dishes" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                           Special Dishes
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                          <a class="dropdown-item" href="special-dishes.html">Beef Steak Sauce</a>
-                          <a class="dropdown-item" href="special-dishes.html">Salmon Zucchini</a>
+                          <a class="dropdown-item" href="/special-dishes">Beef Steak Sauce</a>
+                          <a class="dropdown-item" href="/special-dishes">Salmon Zucchini</a>
                         </div>
                     </li>
                 </div>
             </ul>
             
             <a class="navbar-brand navbar-brand-center d-flex align-items-center only-desktop" href="#">
-                <img src="img/logo.png" alt="">
+                <img src="/static/img/logo.png" alt="">
             </a>
             <ul class="navbar-nav d-flex justify-content-between">
                 <div class="d-flex flex-lg-row flex-column">
                     <li class="nav-item active">
-                        <a class="nav-link" href="menu.html">Menu</a>
+                        <a class="nav-link" href="/menu">Menu</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="team.html">Team</a>
+                        <a class="nav-link" href="/team">Team</a>
                     </li>
 
                     <li class="nav-item dropdown">
-                        <a class="nav-link" href="reservation.html">Reservation</a>
+                        <a class="nav-link" href="/reservation">Reservation</a>
                     </li>
                 </div>
                 <li class="nav-item">
@@ -149,12 +149,12 @@
                     </div>
                 </div>
                 <div class="col-lg-5 offset-lg-2 col-md-6 align-self-center mt-4 mt-md-0">
-                    <img src="img/steak.jpg" alt="" class="img-fluid shadow w-100">
+                    <img src="static/img/steak.jpg" alt="" class="img-fluid shadow w-100">
                 </div>
             </div>
             <div class="row mt-5">
                 <div class="col-lg-5 col-md-6 align-self-center order-2 order-md-1 mt-4 mt-md-0">
-                    <img src="img/salmon-zucchini.jpg" alt="" class="img-fluid shadow w-100">
+                    <img src="static/img/salmon-zucchini.jpg" alt="" class="img-fluid shadow w-100">
                 </div>
                 <div class="col-lg-5 offset-lg-2 col-md-6 align-self-center order-1 order-md-2 py-5">
                     <h2 class="special-number">02.</h2>
@@ -174,7 +174,7 @@
          <div class="row">
          	<div class="col-lg-4">
          		<div class="footer-widget pr-lg-5 pr-0">
-         			<img src="img/logo.png" class="img-fluid footer-logo mb-3" alt="">
+         			<img src="static/img/logo.png" class="img-fluid footer-logo mb-3" alt="">
 	         		<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Et obcaecati quisquam id sit omnis explicabo voluptate aut placeat, soluta, nisi ea magni facere, itaque incidunt modi? Magni, et voluptatum dolorem.</p>
 	         		<nav class="nav nav-mastfoot justify-content-start">
 		                <a class="nav-link" href="#">
@@ -231,15 +231,15 @@
 	<!-- External JS -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
-	<script src="vendor/bootstrap/popper.min.js"></script>
-	<script src="vendor/bootstrap/bootstrap.min.js"></script>
-	<script src="vendor/select2/select2.min.js "></script>
-	<script src="vendor/owlcarousel/owl.carousel.min.js"></script>
+	<script src="/static/vendor/bootstrap/popper.min.js"></script>
+	<script src="/static/vendor/bootstrap/bootstrap.min.js"></script>
+	<script src="/static/vendor/select2/select2.min.js "></script>
+	<script src="/static/vendor/owlcarousel/owl.carousel.min.js"></script>
 	<script src="https://cdn.rawgit.com/noelboss/featherlight/1.7.13/release/featherlight.min.js"></script>
-	<script src="vendor/stellar/jquery.stellar.js" type="text/javascript" charset="utf-8"></script>
+	<script src="/static/vendor/stellar/jquery.stellar.js" type="text/javascript" charset="utf-8"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js"></script>
 
 	<!-- Main JS -->
-	<script src="js/app.min.js "></script>
+	<script src="static/js/app.min.js "></script>
 </body>
 </html>
