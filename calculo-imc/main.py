@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
@@ -8,6 +8,9 @@ def index():
 
 @app.route('/calcular_imc_post', methods=['POST'])
 def calcular_imc():
-    return "deu certo"
+    altura = float(request.form['txt_altura'])
+    peso = float(request.form['txt_peso'])
+    imc = round(peso / (altura**2),2)
+    return render_template('imc.html', imc=imc)
 
 app.run(debug=True)    

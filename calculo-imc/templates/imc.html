@@ -17,5 +17,10 @@
         <input class="btn btn-primary" type="reset" value="Limpar">
     </form>
 
+    {% if imc %}
+        <footer class="text-center mt-5">
+            <h4>Seu IMC É {{imc}}</h4>
+        </footer>
+    {% endif %}
 </body>
 </html>
