@@ -12,16 +12,21 @@ def calcular_imc_post():
     peso = float(request.form['txt_peso'])
     imc = round(peso / (altura**2),2)
     if (imc < 18.5):
-        classificado = 'Magreza'
-    elif (imc >= 18.5 and imc <25):
+        classificado = "Abaixo do peso"
+        img_route = "./static/images/abaixoPeso.png"
+    elif (imc >= 18.5 and imc < 25):
         classificado = "Normal"
+        img_route = "./static/images/normal.png"
     elif (imc >= 25 and imc <30):
-        classificado = 'Sobrepeso'
+        classificado = "Acima do peso"
+        img_route = "./static/images/acimapeso.png"
     elif(imc >=30 and imc < 40):
-        classificado = "Obesidade"
+        classificado = "Sobre peso"
+        img_route = "./static/images/sobrePeso.png"
     elif(imc >= 40):
-        classificado = 'Balofo'
-    return render_template('imc.html', imc=imc, classificado=classificado)
+        classificado = "Super obeso"
+        img_route = "./static/images/obeso.png"
+    return render_template('imc.html', imc=imc, classificado=classificado, img_route=img_route)
 
 @app.route('/calcular_imc_get', methods=['GET']) # Get deixa os parametros expostos na URL. CUIDADO!
 def calcular_imc_get():
