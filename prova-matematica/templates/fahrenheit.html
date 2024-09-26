@@ -1,0 +1,17 @@
+{% extends "skeleton.html" %}
+
+{% block titulo %}
+    Matematica - Fahrenheit
+{% endblock%}
+
+{% block content %}
+    <h1>Converter Celsius para Fahrenheit</h1>
+    <form action="/calc_fahrenheit" method="get">
+        <div class="form-group">
+            <label for="celsius">Temperatura em Celsius:</label>
+            <input type="number" class="form-control" id="celsius" name="celsius" required="">
+        </div>
+        <button type="submit" class="btn btn-primary">Converter</button>
+    </form>
+
+{% endblock %}
