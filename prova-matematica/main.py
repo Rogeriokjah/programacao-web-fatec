@@ -2,34 +2,42 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
+# Home route
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("indexCalc.html")  # Adjust this if you have a main homepage
 
-@app.route("/calculo2grau", methods=["GET", "POST"])
-def equacao():
-    if request.method=="POST": # Se checar o método, dá pra ter calculo e pagina em branco numa rota só (mas só quando for post mesmo)
-        a = int(request.form["a"])
-        b = int(request.form["b"])
-        c = int(request.form["c"])
-        delta = b**2 - 4*a*c
-        x1 = (- b + delta**0.5) / (2*a)
-        x2 = (- b - delta**0.5) / (2*a)
-        return render_template("equacao.html", x1=x1, x2=x2) # Se o método é post, vai fazer o cálculo e passar as variáveis...
-    
-    return render_template("equacao.html")
+# Route for triangle calculation (GET)
+@app.route("/calculo_triangulo", methods=["GET"])
+def calcular_triangulo():
+    a = request.args.get("a", type=int)
+    b = request.args.get("b", type=int)
+    c = request.args.get("c", type=int)
 
+    triangle_type = None
+    if a and b and c:
+        if a == b == c:
+            triangle_type = 'Equilátero'
+        elif a == b or b == c or a == c:
+            triangle_type = 'Isósceles'
+        else:
+            triangle_type = 'Escaleno'
 
-@app.route("/fahrenheit", methods=["GET"])
-def fahrenheit():
-    return render_template("fahrenheit.html")
+    return render_template("calculo_triangulo.html", triangle_type=triangle_type)
 
-@app.route("/calc_fahrenheit")
-def calc_fahrenheit():
-    args = request.args
-    celsius = int(args.get("celsius"))
-    fhrt = (celsius * 9/5) + 32
-    return render_template("calc_fahrenheit.html", fhrt=fhrt)
+# Route for média de notas calculation (POST)
+@app.route("/calc_media_notas", methods=["POST"])
+def calcular_media():
+    nota1 = request.form.get("nota1", type=float)
+    nota2 = request.form.get("nota2", type=float)
+    nota3 = request.form.get("nota3", type=float)
+    nota4 = request.form.get("nota4", type=float)
 
+    media = None
+    if nota1 and nota2 and nota3 and nota4:
+        media = (nota1 + nota2 + nota3 + nota4) / 4
 
-app.run(debug=True)
+    return render_template("calc_media_notas.html", media=media)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)

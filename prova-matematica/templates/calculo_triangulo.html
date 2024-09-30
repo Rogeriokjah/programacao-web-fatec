@@ -1,0 +1,31 @@
+{% extends "esqueletinho.html" %}
+
+{% block titulo %}
+    Matemática - Cálculo Tipo de Triângulo
+{% endblock %}
+
+{% block content %}
+    <h1>Calcular Tipo de Triângulo</h1>
+    <form action="/calculo_triangulo" method="get">
+        <div class="form-group">
+            <label for="a">Lado A:</label>
+            <input type="number" class="form-control" id="a" name="a" required="">
+        </div>
+        <div class="form-group">
+            <label for="b">Lado B:</label>
+            <input type="number" class="form-control" id="b" name="b" required="">
+        </div>
+        <div class="form-group">
+            <label for="c">Lado C:</label>
+            <input type="number" class="form-control" id="c" name="c" required="">
+        </div>
+        <button type="submit" class="btn btn-primary">Calcular</button>
+    </form>
+
+    {% if triangle_type %}
+        <h2 class="mt-5">O tipo de triângulo é:</h2>
+        <div class="alert alert-info">
+            <p>{{ triangle_type }}</p>
+        </div>
+    {% endif %}
+{% endblock %}
