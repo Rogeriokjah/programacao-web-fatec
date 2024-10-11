@@ -59,7 +59,13 @@ SELECT * FROM joaovictor_tbusuario WHERE nome='joaozinho';
 SELECT * FROM joaovictor_tbusuario WHERE nome LIKE "joao%"; -- Basicamente, você está falando: selecione tudo na tabela onde o nome é mais ou menos "joao", seguido de várias letras
 SELECT * FROM joaovictor_tbusuario WHERE nome LIKE "joao_";-- Agora, aqui você está faldno: selecione tudo na onde o nome é mais ou menos "joao", seguido de UMA LETRA
 
-
 -- OPERADORES CORINGA:
 -- % => Qualquer sequencia de caracter. Exemplo: joao paulo
 -- _ => Qualquer caracter (só um). Exemplo: joaop
+
+
+
+
+/*		AULA 10.10		*/
+DELETE FROM joaovictor_tbusuario
+WHERE Codigo = 4; -- Nunca se esqueça do where, ou todos os registros vão embora!
