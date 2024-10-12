@@ -67,5 +67,13 @@ SELECT * FROM joaovictor_tbusuario WHERE nome LIKE "joao_";-- Agora, aqui você 
 
 
 /*		AULA 10.10		*/
+
+-- DELETAR registros
 DELETE FROM joaovictor_tbusuario
 WHERE Codigo = 4; -- Nunca se esqueça do where, ou todos os registros vão embora!
+
+
+-- ATUALIZAR registros
+UPDATE joaovictor_tbusuario SET nome = "João victor"
+WHERE nome = "jaozin"; -- Não se esqueça do Where, se não todo mundo vai se chamar João Victor.
+
