@@ -30,12 +30,16 @@ def index():
 @app.route("/cadastrar-usuario", methods=['POST'])
 def cadastrar():
         name = request.form['name']
-        email = request.form['email']
-        password = request.form['password']
+        cpf = request.form['cpf']
+        rg = request.form['cpf']
+        address = request.form['address']
+        neighborhood = request.form['neighborhood']
+        city = request.form['city']
+        cep = request.form['cep']
 
         # Inserindo no BD:
-        query = "INSERT INTO joaovictor_tbusuario (nome, email, senha) VALUES (%s, %s, %s)"
-        valores = (name, email, password)
+        query = "INSERT INTO joaovictor_tbusuario (nome, cpf, rg, endereco, bairro, cidade, cep) VALUES (%s, %s, %s,%s, %s, %s,%s)"
+        valores = (name, cpf, rg, address, neighborhood, city, cep)
         meu_cursor.execute(query, valores)
         conn.commit() # Commitando o insert no banco de dados
         return redirect(url_for('index'))

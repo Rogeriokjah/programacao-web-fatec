@@ -77,3 +77,15 @@ WHERE Codigo = 4; -- Nunca se esqueça do where, ou todos os registros vão embo
 UPDATE joaovictor_tbusuario SET nome = "João victor"
 WHERE nome = "jaozin"; -- Não se esqueça do Where, se não todo mundo vai se chamar João Victor.
 
+
+/* AULA 22.10 - Atividade com tabela mais complexa*/
+CREATE TABLE joaovictor_tbusuario (
+	codigo INT PRIMARY KEY AUTO_INCREMENT, 
+	nome VARCHAR(80),								
+	cpf VARCHAR(11),
+	rg VARCHAR(12),
+	endereco VARCHAR(100),
+	bairro VARCHAR(70),
+	cidade VARCHAR (50),
+	cep VARCHAR(9)
+);
