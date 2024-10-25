@@ -12,7 +12,7 @@ DELETE FROM Vollo_tbusuario WHERE nome = "Margarido";
 
 /* MUDANDO A ESTRUTURA - Codigo como primery key e Email Unique*/
 
-DROP TABLE joaovictorCarrijo_tbusuario; -- Apagando a tabela antigad
+DROP TABLE joaovictor_tbusuario; -- Apagando a tabela antigad
 
 CREATE TABLE joaovictor_tbusuario (
 	codigo INT PRIMARY KEY, -- Primary key não permite valores nulos e não deve ter valores repetidos
@@ -37,15 +37,13 @@ DROP TABLE joaovictor_tbusuario;
 
 CREATE TABLE joaovictor_tbusuario (
 	codigo INT PRIMARY KEY AUTO_INCREMENT, -- Auto_increment faz com que o valor da coluna seja inserido automaticamente, dessa forma não precisa especificar 
-	nome VARCHAR(80),								-- o valor na hora de dar um insert into
-	email VARCHAR(50) UNIQUE,
+	username VARCHAR(80),								-- o valor na hora de dar um insert into
 	senha VARCHAR(30)
 );
 
-INSERT INTO joaovictor_tbusuario ( nome, email, senha) VALUES(
+INSERT INTO joaovictor_tbusuario ( username, senha) VALUES(
 	"joaozinho",
-	"joaovictor@fatec.com",
-	"P@ssw0rd"
+	"123"
 	-- Não precisa colocar mais o id do usuário, pois ele auto incrementa
 );
 
@@ -79,7 +77,7 @@ WHERE nome = "jaozin"; -- Não se esqueça do Where, se não todo mundo vai se c
 
 
 /* AULA 22.10 - Atividade com tabela mais complexa*/
-CREATE TABLE joaovictor_tbusuario (
+CREATE TABLE joaovictor_tbcliente (
 	codigo INT PRIMARY KEY AUTO_INCREMENT, 
 	nome VARCHAR(80),								
 	cpf VARCHAR(11),
