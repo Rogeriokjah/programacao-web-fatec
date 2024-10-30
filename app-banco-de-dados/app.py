@@ -48,18 +48,18 @@ def cadastrar_cliente():
 def cadastrar_usuario():
     return render_template("cadastrar-usuario.html")
 
-@app.route("/cad-user", methods=['POST'])
+@app.route("/cad-usuario", methods=['POST'])
 def insert_on_database(): # FIXME
     username = request.form['username']
     password = request.form['password']
     query = f"INSERT INTO joaovictor_tbusuario(username, senha) VALUES ('{username}','{password}')"
     meu_cursor.execute(query)
-    meu_cursor.commit()
+    conn.commit()
 
-    return redirect(url_for('cadastrar_usuario', inseriu=True))
+    return render_template('cadastrar-usuario.html', inseriu=True)
 
 
-@app.route("/list-users", methods=['GET'])
+@app.route("/listar-usuarios", methods=['GET'])
 def list_users():
     query = f"SELECT * FROM joaovictor_tbusuario"
     meu_cursor.execute(query)
