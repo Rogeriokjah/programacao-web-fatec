@@ -1,18 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Cursos{% endblock %}
 {% block content %}
-<h2>Cadastro de Cursos</h2>
-<form method="post">
+<h2>Cursos</h2>
+<form action="{{ url_for('cursos') }}" method="POST">
     {{ form.hidden_tag() }}
-    {{ form.nome_curso.label }} {{ form.nome_curso(size=32) }}
-    {{ form.disciplinas.label }} {{ form.disciplinas(multiple=true) }}
-    {{ form.submit() }}
+    {{ form.nome.label }} {{ form.nome(size=20) }}<br>
+    {{ form.disciplinas.label }}<br>
+    {{ form.disciplinas(size=20, multiple=true) }}<br>
+    <button type="submit">Adicionar Curso</button>
 </form>
-<hr>
+
 <h3>Lista de Cursos</h3>
-<ul>
+<table>
+    <tr>
+        <th>Nome</th>
+        <th>Disciplinas</th>
+        <th>Ações</th>
+    </tr>
     {% for curso in cursos %}
-        <li>{{ curso.nome }}</li>
+    <tr>
+        <td>{{ curso.nome }}</td>
+        <td>
+            {% for disciplina in curso.disciplinas %}
+                {{ disciplina.nome }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </td>
+        <td>
+            <a href="{{ url_for('editar_curso', id=curso.id) }}">Editar</a>
+            <form action="{{ url_for('excluir_curso', id=curso.id) }}" method="POST" style="display:inline;">
+                <button type="submit">Excluir</button>
+            </form>
+        </td>
+    </tr>
     {% endfor %}
-</ul>
+</table>
 {% endblock %}

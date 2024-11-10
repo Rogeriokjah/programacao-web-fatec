@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Disciplina{% endblock %}
+
+{% block content %}
+<h2>Editar Disciplina</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.nome.label }}<br>
+        {{ form.nome(size=32) }}<br>
+    </div>
+    <div>
+        {{ form.carga_horaria.label }}<br>
+        {{ form.carga_horaria(size=32) }}<br>
+    </div>
+    <div>
+        <button type="submit">Salvar Alterações</button>
+        <a href="{{ url_for('disciplinas') }}">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

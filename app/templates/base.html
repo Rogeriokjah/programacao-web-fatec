@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,22 +8,28 @@
 </head>
 <body>
     <div class="container">
-        <aside class="sidebar">
+        <div class="sidebar">
             <h2>Menu</h2>
             <ul>
-                <li class="{% if active_page == 'home' %}active{% endif %}"><a href="{{ url_for('dashboard') }}">Home</a></li>
-                <li class="{% if active_page == 'disciplinas' %}active{% endif %}"><a href="{{ url_for('disciplinas') }}">Disciplinas</a></li>
-                <li class="{% if active_page == 'cursos' %}active{% endif %}"><a href="{{ url_for('cursos') }}">Cursos</a></li>
-                <li class="{% if active_page == 'professores' %}active{% endif %}"><a href="{{ url_for('professores') }}">Professores</a></li>
-                <li class="{% if active_page == 'alunos' %}active{% endif %}"><a href="{{ url_for('alunos') }}">Alunos</a></li>
+                <li><a href="{{ url_for('disciplinas') }}" class="{% if request.endpoint == 'disciplinas' %}active{% endif %}">Disciplinas</a></li>
+                <li><a href="{{ url_for('cursos') }}" class="{% if request.endpoint == 'cursos' %}active{% endif %}">Cursos</a></li>
+                <li><a href="{{ url_for('professores') }}" class="{% if request.endpoint == 'professores' %}active{% endif %}">Professores</a></li>
+                <li><a href="{{ url_for('alunos') }}" class="{% if request.endpoint == 'alunos' %}active{% endif %}">Alunos</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
             </ul>
-        </aside>
-        
+        </div>
         <div class="main-content">
             <header>
-                <button onclick="window.location.href='{{ url_for('logout') }}'" class="logout-btn">Logout</button>
+                <h1>Sistema de Gestão Acadêmica</h1>
             </header>
             <div class="content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
                 {% block content %}{% endblock %}
             </div>
         </div>

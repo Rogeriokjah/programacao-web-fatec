@@ -1,21 +1,39 @@
 {% extends "base.html" %}
 {% block title %}Alunos{% endblock %}
 {% block content %}
-<h2>Cadastro de Alunos</h2>
-<form method="post">
+<h2>Alunos</h2>
+<form action="{{ url_for('alunos') }}" method="POST">
     {{ form.hidden_tag() }}
-    {{ form.nome.label }} {{ form.nome(size=32) }}
-    {{ form.cpf.label }} {{ form.cpf(size=11) }}
-    {{ form.endereco.label }} {{ form.endereco(size=50) }}
-    {{ form.senha.label }} {{ form.senha(size=32) }}
-    {{ form.curso.label }} {{ form.curso() }}
-    {{ form.submit() }}
+    {{ form.nome.label }} {{ form.nome(size=20) }}<br>
+    {{ form.cpf.label }} {{ form.cpf(size=20) }}<br>
+    {{ form.endereco.label }} {{ form.endereco(size=30) }}<br>
+    {{ form.senha.label }} {{ form.senha(size=20) }}<br>
+    {{ form.curso.label }} {{ form.curso(size=20) }}<br>
+    <button type="submit">Adicionar Aluno</button>
 </form>
-<hr>
+
 <h3>Lista de Alunos</h3>
-<ul>
+<table>
+    <tr>
+        <th>Nome</th>
+        <th>CPF</th>
+        <th>Endereço</th>
+        <th>Curso</th>
+        <th>Ações</th>
+    </tr>
     {% for aluno in alunos %}
-        <li>{{ aluno.nome }} - {{ aluno.cpf }}</li>
+    <tr>
+        <td>{{ aluno.nome }}</td>
+        <td>{{ aluno.cpf }}</td>
+        <td>{{ aluno.endereco }}</td>
+        <td>{{ aluno.curso.nome if aluno.curso else 'Não cadastrado' }}</td>
+        <td>
+            <a href="{{ url_for('editar_aluno', id=aluno.id) }}">Editar</a>
+            <form action="{{ url_for('excluir_aluno', id=aluno.id) }}" method="POST" style="display:inline;">
+                <button type="submit">Excluir</button>
+            </form>
+        </td>
+    </tr>
     {% endfor %}
-</ul>
+</table>
 {% endblock %}

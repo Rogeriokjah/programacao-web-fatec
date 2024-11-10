@@ -1,19 +1,115 @@
 {% extends "base.html" %}
+
 {% block title %}Disciplinas{% endblock %}
+
 {% block content %}
-<h2>Cadastro de Disciplinas</h2>
-<form action="{{ url_for('disciplinas') }}" method="post">
-    <label for="nome">Nome da Disciplina:</label>
-    <input type="text" id="nome" name="nome" required>
-    <label for="carga_horaria">Carga Horária:</label>
-    <input type="number" id="carga_horaria" name="carga_horaria" required>
-    <button type="submit">Cadastrar</button>
+<h2>Lista de Disciplinas</h2>
+
+<!-- Formulário para exclusão em massa -->
+<form id="deleteForm" method="POST" action="{{ url_for('excluir_disciplinas_selecionadas') }}">
+    <table>
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="selectAll"></th>
+                <th>Nome</th>
+                <th>Carga Horária</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for disciplina in disciplinas %}
+            <tr>
+                <td><input type="checkbox" class="select-item" name="selected_ids" value="{{ disciplina.id }}"></td>
+                <td>{{ disciplina.nome }}</td>
+                <td>{{ disciplina.carga_horaria }} horas</td>
+                <td>
+                    <a href="{{ url_for('editar_disciplina', id=disciplina.id) }}" class="button">Editar</a>
+                    <button type="button" class="button button-danger delete-single" data-id="{{ disciplina.id }}">Excluir</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit" class="button button-danger" id="deleteSelected" disabled>Excluir Selecionados</button>
 </form>
-<hr>
-<h3>Lista de Disciplinas</h3>
-<ul>
-    {% for disciplina in disciplinas %}
-        <li>{{ disciplina.nome }} - {{ disciplina.carga_horaria }} horas</li>
-    {% endfor %}
-</ul>
+
+<!-- Botão para abrir o modal -->
+<button type="button" class="button" id="openModal">Adicionar Nova Disciplina</button>
+
+<!-- Modal -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <h2>Adicionar Nova Disciplina</h2>
+        <form id="addForm" method="POST" action="{{ url_for('disciplinas') }}">
+            {{ form.hidden_tag() }}
+            <div>
+                {{ form.nome.label }}<br>
+                {{ form.nome(size=32) }}<br>
+            </div>
+            <div>
+                {{ form.carga_horaria.label }}<br>
+                {{ form.carga_horaria(size=32) }}<br>
+            </div>
+            <div>
+                <button type="submit" class="button">Adicionar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Modal script
+    const modal = document.getElementById("modal");
+    const btn = document.getElementById("openModal");
+    const span = document.getElementById("closeModal");
+
+    btn.onclick = function() {
+        modal.style.display = "block";
+    }
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    // Seleção de todos os checkboxes e habilitação do botão de exclusão
+    const selectAll = document.getElementById("selectAll");
+    const checkboxes = document.querySelectorAll(".select-item");
+    const deleteSelectedBtn = document.getElementById("deleteSelected");
+
+    selectAll.addEventListener('change', function() {
+        checkboxes.forEach(checkbox => checkbox.checked = selectAll.checked);
+        toggleDeleteButton();
+    });
+
+    checkboxes.forEach(checkbox => checkbox.addEventListener('change', toggleDeleteButton));
+
+    function toggleDeleteButton() {
+        const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+        deleteSelectedBtn.disabled = !anyChecked;
+    }
+
+    // Exclusão unitária via botão
+    document.querySelectorAll(".delete-single").forEach(button => {
+        button.addEventListener("click", function() {
+            const disciplinaId = this.getAttribute("data-id");
+            if (confirm("Tem certeza que deseja excluir esta disciplina?")) {
+                fetch(`/disciplinas/excluir/${disciplinaId}`, {
+                    method: "POST"
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        alert("Erro ao excluir a disciplina.");
+                    }
+                });
+            }
+        });
+    });
+</script>
 {% endblock %}

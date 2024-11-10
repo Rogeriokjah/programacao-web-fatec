@@ -1,21 +1,44 @@
 {% extends "base.html" %}
 {% block title %}Professores{% endblock %}
 {% block content %}
-<h2>Cadastro de Professores</h2>
-<form method="post">
+<h2>Professores</h2>
+<form action="{{ url_for('professores') }}" method="POST">
     {{ form.hidden_tag() }}
-    {{ form.nome.label }} {{ form.nome(size=32) }}
-    {{ form.telefone.label }} {{ form.telefone(size=15) }}
-    {{ form.usuario.label }} {{ form.usuario(size=20) }}
-    {{ form.senha.label }} {{ form.senha(size=32) }}
-    {{ form.disciplinas.label }} {{ form.disciplinas(multiple=true) }}
-    {{ form.submit() }}
+    {{ form.nome.label }} {{ form.nome(size=20) }}<br>
+    {{ form.telefone.label }} {{ form.telefone(size=20) }}<br>
+    {{ form.usuario.label }} {{ form.usuario(size=20) }}<br>
+    {{ form.senha.label }} {{ form.senha(size=20) }}<br>
+    {{ form.disciplinas.label }}<br>
+    {{ form.disciplinas(size=20, multiple=true) }}<br>
+    <button type="submit">Adicionar Professor</button>
 </form>
-<hr>
+
 <h3>Lista de Professores</h3>
-<ul>
+<table>
+    <tr>
+        <th>Nome</th>
+        <th>Telefone</th>
+        <th>Usuário</th>
+        <th>Disciplinas</th>
+        <th>Ações</th>
+    </tr>
     {% for professor in professores %}
-        <li>{{ professor.nome }} - {{ professor.telefone }}</li>
+    <tr>
+        <td>{{ professor.nome }}</td>
+        <td>{{ professor.telefone }}</td>
+        <td>{{ professor.usuario }}</td>
+        <td>
+            {% for disciplina in professor.disciplinas %}
+                {{ disciplina.nome }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </td>
+        <td>
+            <a href="{{ url_for('editar_professor', id=professor.id) }}">Editar</a>
+            <form action="{{ url_for('excluir_professor', id=professor.id) }}" method="POST" style="display:inline;">
+                <button type="submit">Excluir</button>
+            </form>
+        </td>
+    </tr>
     {% endfor %}
-</ul>
+</table>
 {% endblock %}

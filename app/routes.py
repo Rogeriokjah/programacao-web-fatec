@@ -1,12 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import text
+from sqlalchemy.exc import ProgrammingError
 from models import db, Disciplina, Curso, Professor, Aluno, Usuario
 from forms import DisciplinaForm, CursoForm, ProfessorForm, AlunoForm
 from config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Configuração do SQLAlchemy
 db.init_app(app)
 
 # Configuração do Flask-Login
@@ -18,6 +22,24 @@ login_manager.login_view = 'home'
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
 
+def setup_database():
+    with app.app_context():
+        engine = db.engine
+        with engine.connect() as conn:
+            conn.execute(text("CREATE DATABASE IF NOT EXISTS TrabalhoVollo DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_general_ci;"))
+
+        app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{app.config['DATABASE_USER']}:{app.config['DATABASE_PASSWORD']}@localhost/TrabalhoVollo"
+        
+        db.create_all()
+
+        if not Usuario.query.filter_by(username="Admin").first():
+            admin_user = Usuario(username="Admin", password=generate_password_hash("Admin123Admin", method='pbkdf2:sha256'))
+            db.session.add(admin_user)
+            db.session.commit()
+            print("Usuário Admin criado com sucesso.")
+
+setup_database()
+
 @app.route('/')
 def home():
     return render_template('login.html')
@@ -25,29 +47,13 @@ def home():
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form['username']
-    password = request.form['password'].strip()  # Remove espaços em branco no início e no fim
-    
-    print("Recebido do formulário - Usuário:", username, "Senha:", password)  # Debug da senha recebida
-
-    # Busca o usuário no banco de dados
+    password = request.form['password'].strip()
     user = Usuario.query.filter_by(username=username).first()
-
-    if user:
-        print("Usuário encontrado no banco de dados:", user.username)
-        print("Senha armazenada no banco de dados:", user.password)  # Exibe a senha armazenada
-
-        # Compara as senhas diretamente, sem hashing
-        if user.password == password:
-            print("Senha correta para o usuário:", username)  # Depuração para senha correta
-            login_user(user)
-            return redirect(url_for('dashboard'))
-        else:
-            print("Senha incorreta para o usuário:", username)  # Depuração para senha incorreta
-            flash('Senha incorreta. Tente novamente.')
+    if user and user.password == password:
+        login_user(user)
+        return redirect(url_for('dashboard'))
     else:
-        print("Usuário não encontrado:", username)  # Depuração para usuário não encontrado
-        flash('Usuário não encontrado. Tente novamente.')
-
+        flash('Usuário ou senha incorretos. Tente novamente.')
     return redirect(url_for('home'))
 
 @app.route('/logout')
@@ -64,36 +70,65 @@ def dashboard():
 @app.route('/disciplinas', methods=['GET', 'POST'])
 @login_required
 def disciplinas():
-    Disciplina.ensure_table_exists()
     form = DisciplinaForm()
     if form.validate_on_submit():
         nova_disciplina = Disciplina(nome=form.nome.data, carga_horaria=form.carga_horaria.data)
         db.session.add(nova_disciplina)
         db.session.commit()
-        return redirect(url_for('disciplinas'))
+        flash("Disciplina adicionada com sucesso!", "success")
     disciplinas = Disciplina.query.all()
     return render_template('disciplinas.html', disciplinas=disciplinas, form=form, active_page='disciplinas')
+
+@app.route('/disciplinas/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_disciplina(id):
+    disciplina = Disciplina.query.get_or_404(id)
+    form = DisciplinaForm(obj=disciplina)
+    if form.validate_on_submit():
+        disciplina.nome = form.nome.data
+        disciplina.carga_horaria = form.carga_horaria.data
+        db.session.commit()
+        flash("Disciplina atualizada com sucesso!", "success")
+        return redirect(url_for('disciplinas'))
+    return render_template('editar_disciplina.html', form=form, disciplina=disciplina)
+
+@app.route('/disciplinas/excluir/<int:id>', methods=['POST'])
+@login_required
+def excluir_disciplina(id):
+    disciplina = Disciplina.query.get_or_404(id)
+    db.session.delete(disciplina)
+    db.session.commit()
+    flash("Disciplina excluída com sucesso!", "success")
+    return redirect(url_for('disciplinas'))
+
+@app.route('/disciplinas/excluir_selecionadas', methods=['POST'])
+@login_required
+def excluir_disciplinas_selecionadas():
+    ids = request.form.getlist('disciplina_ids')
+    if ids:
+        Disciplina.query.filter(Disciplina.id.in_(ids)).delete(synchronize_session=False)
+        db.session.commit()
+        flash(f"{len(ids)} disciplinas excluídas com sucesso!", "success")
+    else:
+        flash("Nenhuma disciplina selecionada para exclusão.", "warning")
+    return redirect(url_for('disciplinas'))
 
 @app.route('/cursos', methods=['GET', 'POST'])
 @login_required
 def cursos():
-    Curso.ensure_table_exists()
-    Disciplina.ensure_table_exists()
     form = CursoForm()
     form.disciplinas.choices = [(d.id, d.nome) for d in Disciplina.query.all()]
     if form.validate_on_submit():
         novo_curso = Curso(nome=form.nome_curso.data)
         db.session.add(novo_curso)
         db.session.commit()
-        return redirect(url_for('cursos'))
+        flash("Curso adicionado com sucesso!", "success")
     cursos = Curso.query.all()
     return render_template('cursos.html', cursos=cursos, form=form, active_page='cursos')
 
 @app.route('/professores', methods=['GET', 'POST'])
 @login_required
 def professores():
-    Professor.ensure_table_exists()
-    Disciplina.ensure_table_exists()
     form = ProfessorForm()
     form.disciplinas.choices = [(d.id, d.nome) for d in Disciplina.query.all()]
     if form.validate_on_submit():
@@ -105,15 +140,13 @@ def professores():
         )
         db.session.add(novo_professor)
         db.session.commit()
-        return redirect(url_for('professores'))
+        flash("Professor adicionado com sucesso!", "success")
     professores = Professor.query.all()
     return render_template('professores.html', professores=professores, form=form, active_page='professores')
 
 @app.route('/alunos', methods=['GET', 'POST'])
 @login_required
 def alunos():
-    Aluno.ensure_table_exists()
-    Curso.ensure_table_exists()
     form = AlunoForm()
     form.curso.choices = [(c.id, c.nome) for c in Curso.query.all()]
     if form.validate_on_submit():
@@ -126,10 +159,9 @@ def alunos():
         )
         db.session.add(novo_aluno)
         db.session.commit()
-        return redirect(url_for('alunos'))
+        flash("Aluno adicionado com sucesso!", "success")
     alunos = Aluno.query.all()
     return render_template('alunos.html', alunos=alunos, form=form, active_page='alunos')
-
 
 if __name__ == "__main__":
     app.run(debug=True)
