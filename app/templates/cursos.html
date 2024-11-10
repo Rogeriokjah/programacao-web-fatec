@@ -26,9 +26,9 @@
             {% endfor %}
         </td>
         <td>
-            <a href="{{ url_for('editar_curso', id=curso.id) }}">Editar</a>
+            <a href="{{ url_for('editar_curso', id=curso.id) }}" class = "button">Editar</a>
             <form action="{{ url_for('excluir_curso', id=curso.id) }}" method="POST" style="display:inline;">
-                <button type="submit">Excluir</button>
+                <button type="submit" class="button button-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</button>
             </form>
         </td>
     </tr>

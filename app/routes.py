@@ -120,7 +120,7 @@ def cursos():
     form = CursoForm()
     form.disciplinas.choices = [(d.id, d.nome) for d in Disciplina.query.all()]
     if form.validate_on_submit():
-        novo_curso = Curso(nome=form.nome_curso.data)
+        novo_curso = Curso(nome=form.nome.data)
         db.session.add(novo_curso)
         db.session.commit()
         flash("Curso adicionado com sucesso!", "success")
