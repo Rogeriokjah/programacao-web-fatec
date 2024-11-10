@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Cursos{% endblock %}
+{% block content %}
+<h2>Cadastro de Cursos</h2>
+<form method="post">
+    {{ form.hidden_tag() }}
+    {{ form.nome_curso.label }} {{ form.nome_curso(size=32) }}
+    {{ form.disciplinas.label }} {{ form.disciplinas(multiple=true) }}
+    {{ form.submit() }}
+</form>
+<hr>
+<h3>Lista de Cursos</h3>
+<ul>
+    {% for curso in cursos %}
+        <li>{{ curso.nome }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}
