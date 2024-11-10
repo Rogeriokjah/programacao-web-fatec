@@ -1,37 +1,144 @@
 {% extends "base.html" %}
-{% block title %}Cursos{% endblock %}
-{% block content %}
-<h2>Cursos</h2>
-<form action="{{ url_for('cursos') }}" method="POST">
-    {{ form.hidden_tag() }}
-    {{ form.nome.label }} {{ form.nome(size=20) }}<br>
-    {{ form.disciplinas.label }}<br>
-    {{ form.disciplinas(size=20, multiple=true) }}<br>
-    <button type="submit">Adicionar Curso</button>
-</form>
 
-<h3>Lista de Cursos</h3>
+{% block title %}Cursos{% endblock %}
+
+{% block content %}
+<h2>Lista de Cursos</h2>
+
+<!-- Formulário de Adição de Cursos -->
+<div class="button-group">
+    <button type="button" class="button large-button" id="openModal">Adicionar Novo Curso</button>
+</div>
+
 <table>
-    <tr>
-        <th>Nome</th>
-        <th>Disciplinas</th>
-        <th>Ações</th>
-    </tr>
-    {% for curso in cursos %}
-    <tr>
-        <td>{{ curso.nome }}</td>
-        <td>
-            {% for disciplina in curso.disciplinas %}
-                {{ disciplina.nome }}{% if not loop.last %}, {% endif %}
-            {% endfor %}
-        </td>
-        <td>
-            <a href="{{ url_for('editar_curso', id=curso.id) }}" class = "button">Editar</a>
-            <form action="{{ url_for('excluir_curso', id=curso.id) }}" method="POST" style="display:inline;">
-                <button type="submit" class="button button-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Disciplinas</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for curso in cursos %}
+        <tr>
+            <td>{{ curso.nome }}</td>
+            <td>
+                {% for disciplina in curso.disciplinas %}
+                    {{ disciplina.nome }}<br>
+                {% endfor %}
+            </td>
+            <td>
+                <a href="{{ url_for('editar_curso', id=curso.id) }}" class="button">Editar</a>
+                <form action="{{ url_for('excluir_curso', id=curso.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="button button-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+
+<!-- Modal de Adição de Cursos -->
+<div id="modalCurso" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeModalCurso">&times;</span>
+        <h2>Adicionar Novo Curso</h2>
+        <form id="cursoForm" method="POST" action="{{ url_for('adicionar_curso') }}">
+            {{ form.hidden_tag() }}
+            <div>
+                {{ form.nome.label }}
+                <br>
+                {{ form.nome(size=32) }}
+            </div>
+            <div>
+                <label for="searchDisciplinas">Disciplinas</label>
+                <input type="text" id="searchDisciplinas" placeholder="Digite para buscar disciplinas">
+                <div id="disciplinasList"></div>
+                <div id="disciplinasListSelected" class="selected-disciplinas-list"></div>
+            </div>
+            <div>
+                <button type="submit" class="button">Adicionar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Lógica do modal
+    const modal = document.getElementById("modalCurso");
+    const btn = document.getElementById("openModal");
+    const span = document.getElementById("closeModalCurso");
+
+    btn.onclick = function() {
+        modal.style.display = "block";
+    }
+
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    // Lógica de autocomplete com debounce para buscar disciplinas
+    let timeout;
+    document.getElementById("searchDisciplinas").addEventListener("keyup", function() {
+        clearTimeout(timeout);
+        const query = this.value;
+        
+        if (query.length >= 2) {
+            timeout = setTimeout(() => {
+                const selectedDisciplinas = Array.from(document.querySelectorAll('.selected-disciplina input')).map(input => input.value);
+                
+                fetch(`{{ url_for('buscar_disciplinas') }}?query=${query}&exclude=${selectedDisciplinas.join(",")}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const disciplinasList = document.getElementById("disciplinasList");
+                        disciplinasList.innerHTML = '';
+                        data.forEach(disciplina => {
+                            const item = document.createElement("div");
+                            item.classList.add("disciplina-item");
+                            item.textContent = disciplina.nome;
+                            item.dataset.id = disciplina.id;
+                            item.onclick = () => {
+                                addDisciplinaToList(disciplina.id, disciplina.nome);
+                            };
+                            disciplinasList.appendChild(item);
+                        });
+                    });
+            }, 1300); // Debounce de 1,3 segundos
+        }
+    });
+
+    function addDisciplinaToList(id, nome) {
+        const disciplinasField = document.getElementById("disciplinasListSelected");
+
+        // Verifica se a disciplina já foi adicionada
+        if (!document.querySelector(`input[name="disciplinas"][value="${id}"]`)) {
+            const item = document.createElement("div");
+            item.classList.add("selected-disciplina");
+            item.textContent = nome;
+            
+            // Adiciona botão de remoção
+            const removeButton = document.createElement("span");
+            removeButton.classList.add("remove-disciplina");
+            removeButton.textContent = "✖";
+            removeButton.onclick = () => {
+                item.remove();
+                selectedDisciplinas.splice(selectedDisciplinas.indexOf(id), 1);
+            };
+
+            item.appendChild(removeButton);
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "disciplinas";
+            input.value = id;
+            item.appendChild(input);
+            disciplinasField.appendChild(item);
+        }
+    }
+</script>
 {% endblock %}

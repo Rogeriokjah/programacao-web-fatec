@@ -3,6 +3,10 @@ from flask_login import UserMixin
 
 db = SQLAlchemy()
 
+curso_disciplina = db.Table('curso_disciplina',
+    db.Column('curso_id', db.Integer, db.ForeignKey('cursos.id'), primary_key=True),
+    db.Column('disciplina_id', db.Integer, db.ForeignKey('disciplinas.id'), primary_key=True)
+)
 class Usuario(db.Model, UserMixin):
     __tablename__ = 'usuarios'
     id = db.Column(db.Integer, primary_key=True)
@@ -26,7 +30,7 @@ class Curso(db.Model):
     __tablename__ = 'cursos'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
-
+    disciplinas = db.relationship('Disciplina', secondary=curso_disciplina, backref=db.backref('cursos', lazy='dynamic'))
 class Professor(db.Model):
     __tablename__ = 'professores'
     id = db.Column(db.Integer, primary_key=True)

@@ -8,7 +8,7 @@ class DisciplinaForm(FlaskForm):
 
 class CursoForm(FlaskForm):
     nome = StringField('Nome do Curso', validators=[DataRequired()])
-    disciplinas = SelectMultipleField('Disciplinas', coerce=int)
+    disciplinas = SelectMultipleField('Disciplinas', choices=[])
 
 class ProfessorForm(FlaskForm):
     nome = StringField('Nome', validators=[DataRequired()])

@@ -6,6 +6,7 @@ from sqlalchemy.exc import ProgrammingError
 from models import db, Disciplina, Curso, Professor, Aluno, Usuario
 from forms import DisciplinaForm, CursoForm, ProfessorForm, AlunoForm
 from config import Config
+import json
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -127,6 +128,26 @@ def cursos():
     cursos = Curso.query.all()
     return render_template('cursos.html', cursos=cursos, form=form, active_page='cursos')
 
+@app.route('/adicionar_curso', methods=['POST'])
+@login_required
+def adicionar_curso():
+    nome_curso = request.form.get('nome')
+    disciplinas_ids = request.form.getlist('disciplinas')  # Recebe a lista de IDs de disciplinas
+    
+    novo_curso = Curso(nome=nome_curso)
+    db.session.add(novo_curso)
+    db.session.commit()  # Salva o curso primeiro para obter o ID
+
+    # Relaciona as disciplinas selecionadas ao curso
+    if disciplinas_ids:
+        disciplinas_ids = [int(d_id) for d_id in disciplinas_ids]  # Converte para inteiros
+        disciplinas = Disciplina.query.filter(Disciplina.id.in_(disciplinas_ids)).all()
+        novo_curso.disciplinas.extend(disciplinas)
+        db.session.commit()
+
+    flash("Curso adicionado com sucesso!", "success")
+    return redirect(url_for('cursos'))
+
 @app.route('/cursos/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar_curso(id):
@@ -193,6 +214,24 @@ def alunos():
         flash("Aluno adicionado com sucesso!", "success")
     alunos = Aluno.query.all()
     return render_template('alunos.html', alunos=alunos, form=form, active_page='alunos')
+
+@app.route('/buscar_disciplinas', methods=['GET'])
+@login_required
+def buscar_disciplinas():
+    query = request.args.get('query', '')
+    exclude = request.args.get('exclude', '')
+
+    # Converte exclude em uma lista de inteiros
+    exclude_ids = list(map(int, exclude.split(','))) if exclude else []
+
+    # Filtra as disciplinas com o nome correspondente e exclui as já selecionadas
+    disciplinas = Disciplina.query.filter(
+        Disciplina.nome.like(f"%{query}%"),
+        ~Disciplina.id.in_(exclude_ids)
+    ).all()
+
+    # Retorna as disciplinas no formato JSON
+    return jsonify([{'id': d.id, 'nome': d.nome} for d in disciplinas])
 
 if __name__ == "__main__":
     app.run(debug=True)
