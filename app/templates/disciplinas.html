@@ -7,8 +7,8 @@
 
 <!-- Botão para abrir o modal -->
 <div class="button-group">
-    <button class="button large-button" id="openModal">Adicionar Nova Disciplina</button>
-    <button class="button button-danger large-button" id="deleteSelected" disabled>Excluir Selecionadas</button>
+    <button type="button" class="button large-button" id="openModal">Adicionar Nova Disciplina</button>
+    <button type="button" class="button button-danger large-button" id="deleteSelected" disabled>Excluir Selecionadas</button>
 </div>
 
 <table>
@@ -42,7 +42,7 @@
     <div class="modal-content">
         <span class="close" id="closeModal">&times;</span>
         <h2>Adicionar Nova Disciplina</h2>
-        <form method="POST">
+        <form id="formAddDisciplina" method="POST" action="{{ url_for('disciplinas') }}">
             {{ form.hidden_tag() }}
             <div>{{ form.nome.label }}<br>{{ form.nome(size=32) }}</div>
             <div>{{ form.carga_horaria.label }}<br>{{ form.carga_horaria(size=32) }}</div>
@@ -66,11 +66,13 @@
     // Função para fechar o modal
     span.onclick = function() {
         modal.style.display = "none";
+        document.getElementById("formAddDisciplina").reset(); // Limpa o formulário ao fechar o modal
     }
 
     window.onclick = function(event) {
         if (event.target == modal) {
             modal.style.display = "none";
+            document.getElementById("formAddDisciplina").reset(); // Limpa o formulário ao clicar fora do modal
         }
     }
 
@@ -92,24 +94,32 @@
     }
 
     // Lógica para exclusão em massa
-    deleteSelectedButton.addEventListener('click', function() {
+    deleteSelectedButton.addEventListener('click', function(event) {
+        event.preventDefault(); // Evita o comportamento padrão do submit
         const selectedIds = Array.from(document.querySelectorAll('.selectItem:checked'))
                                  .map(item => item.dataset.id);
 
-        fetch("{{ url_for('excluir_disciplinas_selecionadas') }}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ disciplina_ids: selectedIds })
-        })
-        .then(response => {
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                alert("Erro ao excluir disciplinas.");
-            }
-        });
+        if (selectedIds.length > 0) {
+            fetch("{{ url_for('excluir_disciplinas_selecionadas') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ disciplina_ids: selectedIds })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert("Erro ao excluir disciplinas.");
+                }
+            })
+            .finally(() => {
+                document.querySelectorAll('.selectItem').forEach(item => item.checked = false); // Desmarca todas as caixas
+                selectAllCheckbox.checked = false; // Desmarca o checkbox de selecionar tudo
+                toggleDeleteButton(); // Atualiza o botão de exclusão
+            });
+        }
     });
 </script>
 {% endblock %}

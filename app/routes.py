@@ -127,6 +127,36 @@ def cursos():
     cursos = Curso.query.all()
     return render_template('cursos.html', cursos=cursos, form=form, active_page='cursos')
 
+@app.route('/cursos/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_curso(id):
+    curso = Curso.query.get(id)
+    form = CursoForm(obj=curso)
+    if form.validate_on_submit():
+        curso.nome = form.nome.data
+        db.session.commit()
+        flash("Curso atualizado com sucesso!", "success")
+        return redirect(url_for('cursos'))
+    return render_template('editar_curso.html', form=form, active_page='cursos')
+
+@app.route('/cursos/excluir/<int:id>', methods=['POST'])
+@login_required
+def excluir_curso(id):
+    curso = Curso.query.get(id)
+    db.session.delete(curso)
+    db.session.commit()
+    flash("Curso excluído com sucesso!", "success")
+    return redirect(url_for('cursos'))
+
+@app.route('/cursos/excluir_selecionados', methods=['POST'])
+@login_required
+def excluir_cursos_selecionados():
+    ids = request.json.get('curso_ids', [])
+    Curso.query.filter(Curso.id.in_(ids)).delete(synchronize_session='fetch')
+    db.session.commit()
+    return jsonify({"success": True})
+
+
 @app.route('/professores', methods=['GET', 'POST'])
 @login_required
 def professores():
