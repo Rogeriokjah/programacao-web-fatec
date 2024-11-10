@@ -185,3 +185,15 @@ button:disabled {
     cursor: not-allowed;
 }
 
+.button-group {
+    display: flex;
+    gap: 10px; /* Espaço entre os botões */
+    margin-bottom: 20px; /* Espaço abaixo dos botões */
+}
+
+.large-button {
+    width: 100%; /* Define o mesmo tamanho para ambos os botões */
+    max-width: 200px; /* Ajuste o valor conforme necessário */
+    padding: 10px 20px; /* Tamanho do botão para torná-los iguais */
+    box-sizing: border-box;
+}

@@ -104,14 +104,15 @@ def excluir_disciplina(id):
 @app.route('/disciplinas/excluir_selecionadas', methods=['POST'])
 @login_required
 def excluir_disciplinas_selecionadas():
-    ids = request.form.getlist('disciplina_ids')
+    data = request.get_json()
+    ids = data.get('disciplina_ids', [])
     if ids:
         Disciplina.query.filter(Disciplina.id.in_(ids)).delete(synchronize_session=False)
         db.session.commit()
         flash(f"{len(ids)} disciplinas excluídas com sucesso!", "success")
     else:
         flash("Nenhuma disciplina selecionada para exclusão.", "warning")
-    return redirect(url_for('disciplinas'))
+    return jsonify(success=True)
 
 @app.route('/cursos', methods=['GET', 'POST'])
 @login_required
