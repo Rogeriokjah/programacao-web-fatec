@@ -2,31 +2,20 @@
 {% block title %}Login{% endblock %}
 {% block content %}
 <h2>Login</h2>
-<form action="{{ url_for('home') }}" method="post">
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="flash-messages">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+<form id="loginForm" action="{{ url_for('login') }}" method="post">
     <label for="username">Usuário:</label>
     <input type="text" id="username" name="username" required>
     <label for="password">Senha:</label>
     <input type="password" id="password" name="password" required>
     <button type="submit">Entrar</button>
 </form>
-
-<!-- Botão para verificar e criar o banco de dados -->
-<hr>
-<h3>Configuração Inicial</h3>
-<button onclick="verificarBanco()">Verificar e Criar Banco de Dados</button>
-<p id="resultado"></p>
-
-<script>
-function verificarBanco() {
-    fetch('/api/init_db', { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('resultado').textContent = data.message;
-        })
-        .catch(error => {
-            document.getElementById('resultado').textContent = 'Erro ao verificar o banco de dados.';
-            console.error('Erro:', error);
-        });
-}
-</script>
 {% endblock %}

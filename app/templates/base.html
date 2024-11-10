@@ -4,14 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>{% block title %}Sistema de Gestão{% endblock %}</title>
+    <title>{% block title %}Sistema de Gestão Acadêmica{% endblock %}</title>
 </head>
 <body>
-    <header>
-        <h1>Bem-vindo ao Sistema de Gestão Acadêmica</h1>
-    </header>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Menu</h2>
+            <ul>
+                <li class="{% if active_page == 'home' %}active{% endif %}"><a href="{{ url_for('dashboard') }}">Home</a></li>
+                <li class="{% if active_page == 'disciplinas' %}active{% endif %}"><a href="{{ url_for('disciplinas') }}">Disciplinas</a></li>
+                <li class="{% if active_page == 'cursos' %}active{% endif %}"><a href="{{ url_for('cursos') }}">Cursos</a></li>
+                <li class="{% if active_page == 'professores' %}active{% endif %}"><a href="{{ url_for('professores') }}">Professores</a></li>
+                <li class="{% if active_page == 'alunos' %}active{% endif %}"><a href="{{ url_for('alunos') }}">Alunos</a></li>
+            </ul>
+        </aside>
+        
+        <div class="main-content">
+            <header>
+                <button onclick="window.location.href='{{ url_for('logout') }}'" class="logout-btn">Logout</button>
+            </header>
+            <div class="content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
 </body>
 </html>
