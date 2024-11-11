@@ -1,24 +1,21 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
 db = SQLAlchemy()
 
-curso_disciplina = db.Table('curso_disciplina',
-    db.Column('curso_id', db.Integer, db.ForeignKey('cursos.id'), primary_key=True),
-    db.Column('disciplina_id', db.Integer, db.ForeignKey('disciplinas.id'), primary_key=True)
-)
 class Usuario(db.Model, UserMixin):
     __tablename__ = 'usuarios'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
 
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
-
-    def is_active(self):
-        return True
+# Tabela de associação entre Curso e Disciplina
+curso_disciplina = db.Table('curso_disciplina',
+    db.Column('curso_id', db.Integer, db.ForeignKey('cursos.id'), primary_key=True),
+    db.Column('disciplina_id', db.Integer, db.ForeignKey('disciplinas.id'), primary_key=True)
+)
 
 class Disciplina(db.Model):
     __tablename__ = 'disciplinas'
@@ -30,7 +27,11 @@ class Curso(db.Model):
     __tablename__ = 'cursos'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
-    disciplinas = db.relationship('Disciplina', secondary=curso_disciplina, backref=db.backref('cursos', lazy='dynamic'))
+    disciplinas = relationship('Disciplina', secondary=curso_disciplina, backref='cursos')
+
+    @hybrid_property
+    def carga_horaria_total(self):
+        return sum(disciplina.carga_horaria for disciplina in self.disciplinas)
 class Professor(db.Model):
     __tablename__ = 'professores'
     id = db.Column(db.Integer, primary_key=True)

@@ -120,6 +120,8 @@ button, .button {
     cursor: pointer;
     border-radius: 5px;
     font-size: 14px;
+    margin-top: 20px;
+    margin-right: 20px;
 }
 
 button:hover, .button:hover {
@@ -129,6 +131,8 @@ button:hover, .button:hover {
 /* Estilo específico para botões de ação (Excluir) */
 .button-danger {
     background-color: #d9534f;
+    margin-top: 20px;
+    margin-right: 20px;
 }
 
 .button-danger:hover {
@@ -196,6 +200,8 @@ button:disabled {
     max-width: 200px; /* Ajuste o valor conforme necessário */
     padding: 10px 20px; /* Tamanho do botão para torná-los iguais */
     box-sizing: border-box;
+    margin-top: 20px;
+    margin-right: 20px;
 }
 
 .selected-disciplinas-list {

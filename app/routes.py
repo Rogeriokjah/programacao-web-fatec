@@ -1,12 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import text
-from sqlalchemy.exc import ProgrammingError
-from models import db, Disciplina, Curso, Professor, Aluno, Usuario
+from models import db, Disciplina, Curso, Professor, Aluno, Usuario, curso_disciplina
 from forms import DisciplinaForm, CursoForm, ProfessorForm, AlunoForm
 from config import Config
-import json
+from sqlalchemy import text
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -151,22 +149,39 @@ def adicionar_curso():
 @app.route('/cursos/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar_curso(id):
-    curso = Curso.query.get(id)
+    curso = Curso.query.get_or_404(id)
     form = CursoForm(obj=curso)
-    if form.validate_on_submit():
+
+    if request.method == 'POST':
+        # Atualiza o nome do curso
         curso.nome = form.nome.data
+
+        # Remove todas as disciplinas relacionadas ao curso
+        db.session.execute(curso_disciplina.delete().where(curso_disciplina.c.curso_id == id))
+        
+        # Adiciona as disciplinas selecionadas novamente
+        disciplinas_ids = request.form.getlist('disciplinas')
+        for disciplina_id in disciplinas_ids:
+            db.session.execute(curso_disciplina.insert().values(curso_id=id, disciplina_id=int(disciplina_id)))
+        
         db.session.commit()
         flash("Curso atualizado com sucesso!", "success")
         return redirect(url_for('cursos'))
-    return render_template('editar_curso.html', form=form, active_page='cursos')
+
+    disciplinas_selecionadas = [d.id for d in curso.disciplinas]
+    return render_template('editar_curso.html', curso=curso, form=form, disciplinas_selecionadas=disciplinas_selecionadas)
 
 @app.route('/cursos/excluir/<int:id>', methods=['POST'])
 @login_required
 def excluir_curso(id):
-    curso = Curso.query.get(id)
-    db.session.delete(curso)
-    db.session.commit()
-    flash("Curso excluído com sucesso!", "success")
+    curso = Curso.query.get_or_404(id)
+    try:
+        db.session.delete(curso)
+        db.session.commit()
+        flash("Curso excluído com sucesso!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao excluir o curso: {str(e)}", "danger")
     return redirect(url_for('cursos'))
 
 @app.route('/cursos/excluir_selecionados', methods=['POST'])

@@ -10,12 +10,13 @@
     <button type="button" class="button large-button" id="openModal">Adicionar Novo Curso</button>
 </div>
 
-<table>
+<table style="width: 100%;">
     <thead>
         <tr>
-            <th>Nome</th>
-            <th>Disciplinas</th>
-            <th>Ações</th>
+            <th style="width: 25%;">Nome</th>
+            <th style="width: 40%;">Disciplinas</th>
+            <th style="width: 10%; text-align: center;">Carga Horária (horas)</th>
+            <th style="width: 20%; text-align: center;">Ações</th>
         </tr>
     </thead>
     <tbody>
@@ -24,10 +25,13 @@
             <td>{{ curso.nome }}</td>
             <td>
                 {% for disciplina in curso.disciplinas %}
-                    {{ disciplina.nome }}<br>
+                    {{ disciplina.nome }}{% if not loop.last %}; {% endif %}
                 {% endfor %}
             </td>
-            <td>
+            <td style="text-align: center;">
+                {{ curso.carga_horaria_total }}
+            </td>
+            <td style="text-align: center;">
                 <a href="{{ url_for('editar_curso', id=curso.id) }}" class="button">Editar</a>
                 <form action="{{ url_for('excluir_curso', id=curso.id) }}" method="POST" style="display:inline;">
                     <button type="submit" class="button button-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</button>
@@ -85,14 +89,13 @@
 
     // Lógica de autocomplete com debounce para buscar disciplinas
     let timeout;
+    const selectedDisciplinas = []; // Lista de disciplinas selecionadas
     document.getElementById("searchDisciplinas").addEventListener("keyup", function() {
         clearTimeout(timeout);
         const query = this.value;
         
         if (query.length >= 2) {
             timeout = setTimeout(() => {
-                const selectedDisciplinas = Array.from(document.querySelectorAll('.selected-disciplina input')).map(input => input.value);
-                
                 fetch(`{{ url_for('buscar_disciplinas') }}?query=${query}&exclude=${selectedDisciplinas.join(",")}`)
                     .then(response => response.json())
                     .then(data => {
@@ -117,7 +120,7 @@
         const disciplinasField = document.getElementById("disciplinasListSelected");
 
         // Verifica se a disciplina já foi adicionada
-        if (!document.querySelector(`input[name="disciplinas"][value="${id}"]`)) {
+        if (!selectedDisciplinas.includes(id)) {
             const item = document.createElement("div");
             item.classList.add("selected-disciplina");
             item.textContent = nome;
@@ -138,6 +141,9 @@
             input.value = id;
             item.appendChild(input);
             disciplinasField.appendChild(item);
+
+            // Adiciona o ID à lista de selecionados para excluir das próximas buscas
+            selectedDisciplinas.push(id);
         }
     }
 </script>
