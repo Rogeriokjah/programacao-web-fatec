@@ -60,14 +60,47 @@
                 <br>
                 {{ form.nome(size=32) }}
             </div>
-            <div>
-                <label for="searchDisciplinas">Disciplinas</label>
-                <input type="text" id="searchDisciplinas" placeholder="Digite para buscar disciplinas">
-                <div id="disciplinasList"></div>
-                <div id="disciplinasListSelected" class="selected-disciplinas-list"></div>
+
+            <!-- Campo de Pesquisa de Disciplinas -->
+            <div style="margin-top: 20px;">
+                <label for="searchDisciplinas">Pesquisar Disciplinas</label><br>
+                <input type="text" id="searchDisciplinas" placeholder="Digite para buscar disciplinas" style="width: 100%;">
             </div>
-            <div>
-                <button type="submit" class="button">Adicionar</button>
+
+            <!-- Tabela de Resultados da Pesquisa -->
+            <div id="disciplinasListContainer" style="margin-top: 10px;">
+                <table id="disciplinasList" style="width: 100%; display: none; font-size: 0.9em;">
+                    <thead>
+                        <tr>
+                            <th>Nome da Disciplina</th>
+                            <th style="width: 100px;">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="disciplinasTableBody">
+                        <!-- Resultados da pesquisa aparecerão aqui -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tabela de Disciplinas Selecionadas -->
+            <div id="disciplinasListSelected" style="margin-top: 20px;">
+                <h4>Disciplinas Selecionadas</h4>
+                <table style="width: 100%; font-size: 0.9em;">
+                    <thead>
+                        <tr>
+                            <th>Nome da Disciplina</th>
+                            <th style="width: 100px;">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="disciplinasSelectedTableBody">
+                        <!-- Disciplinas selecionadas aparecerão aqui -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button type="submit" class="button">Adicionar Curso</button>
+                <button type="button" class="button button-secondary" id="cancelModal">Cancelar</button>
             </div>
         </form>
     </div>
@@ -100,12 +133,13 @@
     const modal = document.getElementById("modalCurso");
     const btn = document.getElementById("openModal");
     const span = document.getElementById("closeModalCurso");
+    const cancelModal = document.getElementById("cancelModal");
 
     btn.onclick = function() {
         modal.style.display = "block";
     }
 
-    span.onclick = function() {
+    span.onclick = cancelModal.onclick = function() {
         modal.style.display = "none";
     }
 
@@ -122,57 +156,92 @@
         clearTimeout(timeout);
         const query = this.value;
         
-        if (query.length >= 2) {
+        if (query.length >= 1) {
             timeout = setTimeout(() => {
-                fetch(`{{ url_for('buscar_disciplinas') }}?query=${query}&exclude=${selectedDisciplinas.join(",")}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const disciplinasList = document.getElementById("disciplinasList");
-                        disciplinasList.innerHTML = '';
-                        data.forEach(disciplina => {
-                            const item = document.createElement("div");
-                            item.classList.add("disciplina-item");
-                            item.textContent = disciplina.nome;
-                            item.dataset.id = disciplina.id;
-                            item.onclick = () => {
-                                addDisciplinaToList(disciplina.id, disciplina.nome);
-                            };
-                            disciplinasList.appendChild(item);
-                        });
-                    });
-            }, 1300); // Debounce de 1,3 segundos
+                searchDisciplinas(query);
+            }, 300);
         }
     });
 
-    function addDisciplinaToList(id, nome) {
-        const disciplinasField = document.getElementById("disciplinasListSelected");
+    function searchDisciplinas(query) {
+        fetch(`{{ url_for('buscar_disciplinas') }}?query=${query}&exclude=${selectedDisciplinas.join(",")}`)
+            .then(response => response.json())
+            .then(data => {
+                const disciplinasTableBody = document.getElementById("disciplinasTableBody");
+                disciplinasTableBody.innerHTML = '';
+                document.getElementById("disciplinasList").style.display = data.length > 0 ? 'table' : 'none';
+                
+                data.forEach(disciplina => {
+                    const row = document.createElement("tr");
 
-        // Verifica se a disciplina já foi adicionada
-        if (!selectedDisciplinas.includes(id)) {
-            const item = document.createElement("div");
-            item.classList.add("selected-disciplina");
-            item.textContent = nome;
-            
-            // Adiciona botão de remoção
-            const removeButton = document.createElement("span");
+                    const nomeCell = document.createElement("td");
+                    nomeCell.textContent = disciplina.nome;
+                    row.appendChild(nomeCell);
+
+                    const actionCell = document.createElement("td");
+                    const addButton = document.createElement("button");
+                    addButton.textContent = "Adicionar";
+                    addButton.classList.add("add-disciplina");
+                    addButton.onclick = (event) => {
+                        event.preventDefault();  // Impede a submissão do formulário
+                        addDisciplina(disciplina.id, disciplina.nome);
+                    };
+                    actionCell.appendChild(addButton);
+                    row.appendChild(actionCell);
+
+                    disciplinasTableBody.appendChild(row);
+                });
+            });
+    }
+
+    function addDisciplina(id, nome) {
+        if (!selectedDisciplinas.includes(id.toString())) {
+            selectedDisciplinas.push(id.toString());
+            const selectedTableBody = document.getElementById("disciplinasSelectedTableBody");
+
+            // Adiciona a disciplina à tabela de selecionadas
+            const row = document.createElement("tr");
+            row.id = `selected-disciplina-${id}`;
+
+            const nomeCell = document.createElement("td");
+            nomeCell.textContent = nome;
+            row.appendChild(nomeCell);
+
+            const actionCell = document.createElement("td");
+            const removeButton = document.createElement("button");
+            removeButton.textContent = "Remover";
             removeButton.classList.add("remove-disciplina");
-            removeButton.textContent = "✖";
-            removeButton.onclick = () => {
-                item.remove();
-                selectedDisciplinas.splice(selectedDisciplinas.indexOf(id), 1);
-            };
+            removeButton.onclick = () => removeDisciplina(id);
+            actionCell.appendChild(removeButton);
+            row.appendChild(actionCell);
 
-            item.appendChild(removeButton);
             const input = document.createElement("input");
             input.type = "hidden";
             input.name = "disciplinas";
             input.value = id;
-            item.appendChild(input);
-            disciplinasField.appendChild(item);
+            row.appendChild(input);
 
-            // Adiciona o ID à lista de selecionados para excluir das próximas buscas
-            selectedDisciplinas.push(id);
+            selectedTableBody.appendChild(row);
+
+            // Atualiza a lista de pesquisa
+            const query = document.getElementById("searchDisciplinas").value;
+            if (query.length >= 1) {
+                searchDisciplinas(query);  // Refaz a busca para remover a disciplina recém-adicionada
+            }
+        }
+    }
+
+    function removeDisciplina(id) {
+        const index = selectedDisciplinas.indexOf(id.toString());
+        if (index > -1) {
+            selectedDisciplinas.splice(index, 1);
+            document.getElementById(`selected-disciplina-${id}`).remove();
+
+            // Atualiza a lista de pesquisa, independentemente do comprimento do query
+            const query = document.getElementById("searchDisciplinas").value;
+            searchDisciplinas(query);  // Refaz a busca para adicionar a disciplina removida
         }
     }
 </script>
+
 {% endblock %}
