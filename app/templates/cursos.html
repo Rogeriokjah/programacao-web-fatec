@@ -24,9 +24,15 @@
         <tr>
             <td>{{ curso.nome }}</td>
             <td>
-                {% for disciplina in curso.disciplinas %}
-                    {{ disciplina.nome }}{% if not loop.last %}; {% endif %}
-                {% endfor %}
+                <div class="disciplinas-container">
+                    {% for disciplina in curso.disciplinas %}
+                    <div class="disciplina-item">
+                        <span class="disciplina-nome">{{ disciplina.nome }}</span>
+                        <span class="disciplina-separador">-</span>
+                        <span class="disciplina-carga">{{ disciplina.carga_horaria }} horas</span>
+                    </div>
+                    {% endfor %}
+                </div>
             </td>
             <td style="text-align: center;">
                 {{ curso.carga_horaria_total }}
@@ -66,6 +72,28 @@
         </form>
     </div>
 </div>
+
+<style>
+    .disciplinas-container {
+        padding-left: 10px;
+    }
+    .disciplina-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px; /* Espaço entre os elementos */
+    }
+    .disciplina-nome {
+        flex: 1; /* Nome da disciplina ocupa o espaço disponível */
+    }
+    .disciplina-separador {
+        width: 20px; /* Largura fixa para o hífen */
+        text-align: center; /* Centraliza o hífen */
+    }
+    .disciplina-carga {
+        width: 80px; /* Largura fixa para as horas */
+        text-align: right; /* Alinha as horas à direita */
+    }
+</style>
 
 <script>
     // Lógica do modal

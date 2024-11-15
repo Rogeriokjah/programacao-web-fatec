@@ -42,7 +42,7 @@
     <div class="modal-content">
         <span class="close" id="closeModal">&times;</span>
         <h2>Adicionar Nova Disciplina</h2>
-        <form id="formAddDisciplina" method="POST" action="{{ url_for('disciplinas') }}">
+        <form id="formAddDisciplina" method="POST" action="{{ url_for('criar_disciplina') }}">
             {{ form.hidden_tag() }}
             <div>{{ form.nome.label }}<br>{{ form.nome(size=32) }}</div>
             <div>{{ form.carga_horaria.label }}<br>{{ form.carga_horaria(size=32) }}</div>

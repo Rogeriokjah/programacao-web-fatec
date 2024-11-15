@@ -66,17 +66,26 @@ def logout():
 def dashboard():
     return render_template('home.html')
 
-@app.route('/disciplinas', methods=['GET', 'POST'])
+@app.route('/disciplinas', methods=['GET'])
 @login_required
-def disciplinas():
+def listar_disciplinas():
+    form = DisciplinaForm()
+    disciplinas = Disciplina.query.all()
+    return render_template('disciplinas.html', disciplinas=disciplinas, form=form, active_page='disciplinas')
+
+@app.route('/disciplinas/criar', methods=['POST'])
+@login_required
+def criar_disciplina():
     form = DisciplinaForm()
     if form.validate_on_submit():
         nova_disciplina = Disciplina(nome=form.nome.data, carga_horaria=form.carga_horaria.data)
         db.session.add(nova_disciplina)
         db.session.commit()
         flash("Disciplina adicionada com sucesso!", "success")
-    disciplinas = Disciplina.query.all()
-    return render_template('disciplinas.html', disciplinas=disciplinas, form=form, active_page='disciplinas')
+        return redirect(url_for('listar_disciplinas'))
+    else:
+        flash("Erro ao adicionar a disciplina. Verifique os dados e tente novamente.", "danger")
+        return redirect(url_for('listar_disciplinas'))
 
 @app.route('/disciplinas/editar/<int:id>', methods=['GET', 'POST'])
 @login_required

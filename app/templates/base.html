@@ -11,7 +11,7 @@
         <div class="sidebar">
             <h2>Menu</h2>
             <ul>
-                <li><a href="{{ url_for('disciplinas') }}" class="{% if request.endpoint == 'disciplinas' %}active{% endif %}">Disciplinas</a></li>
+                <li><a href="{{ url_for('listar_disciplinas') }}" class="{% if request.endpoint == 'disciplinas' %}active{% endif %}">Disciplinas</a></li>
                 <li><a href="{{ url_for('cursos') }}" class="{% if request.endpoint == 'cursos' %}active{% endif %}">Cursos</a></li>
                 <li><a href="{{ url_for('professores') }}" class="{% if request.endpoint == 'professores' %}active{% endif %}">Professores</a></li>
                 <li><a href="{{ url_for('alunos') }}" class="{% if request.endpoint == 'alunos' %}active{% endif %}">Alunos</a></li>
