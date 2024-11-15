@@ -15,9 +15,11 @@ class ProfessorForm(FlaskForm):
     telefone = StringField('Telefone', validators=[Length(max=20)])
     usuario = StringField('Usuário', validators=[DataRequired()])
     senha = PasswordField('Senha', validators=[DataRequired()])
+    disciplinas = SelectMultipleField('Disciplinas', choices=[])
 
 class AlunoForm(FlaskForm):
     nome = StringField('Nome', validators=[DataRequired()])
     cpf = StringField('CPF', validators=[DataRequired(), Length(11)])
     endereco = StringField('Endereço', validators=[DataRequired()])
     senha = PasswordField('Senha', validators=[DataRequired()])
+    curso = SelectField('Curso', validators=[DataRequired()])

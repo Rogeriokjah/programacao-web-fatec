@@ -4,9 +4,9 @@
 <h2>Professores</h2>
 <form action="{{ url_for('professores') }}" method="POST">
     {{ form.hidden_tag() }}
-    {{ form.nome.label }} {{ form.nome(size=20) }}<br>
+    {{ form.nome.label }} {{ form.nome(size=20) }}
     {{ form.telefone.label }} {{ form.telefone(size=20) }}<br>
-    {{ form.usuario.label }} {{ form.usuario(size=20) }}<br>
+    {{ form.usuario.label }} {{ form.usuario(size=20) }}
     {{ form.senha.label }} {{ form.senha(size=20) }}<br>
     {{ form.disciplinas.label }}<br>
     {{ form.disciplinas(size=20, multiple=true) }}<br>
