@@ -122,9 +122,9 @@ def excluir_disciplinas_selecionadas():
         flash("Nenhuma disciplina selecionada para exclusão.", "warning")
     return jsonify(success=True)
 
-@app.route('/cursos', methods=['GET', 'POST'])
+@app.route('/cursos', methods=['GET'])
 @login_required
-def cursos():
+def listar_cursos():
     form = CursoForm()
     form.disciplinas.choices = [(d.id, d.nome) for d in Disciplina.query.all()]
     if form.validate_on_submit():
@@ -153,7 +153,7 @@ def adicionar_curso():
         db.session.commit()
 
     flash("Curso adicionado com sucesso!", "success")
-    return redirect(url_for('cursos'))
+    return redirect(url_for('listar_cursos'))
 
 @app.route('/cursos/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -175,7 +175,7 @@ def editar_curso(id):
         
         db.session.commit()
         flash("Curso atualizado com sucesso!", "success")
-        return redirect(url_for('cursos'))
+        return redirect(url_for('listar_cursos'))
 
     disciplinas_selecionadas = [d.id for d in curso.disciplinas]
     return render_template('editar_curso.html', curso=curso, form=form, disciplinas_selecionadas=disciplinas_selecionadas)
@@ -191,7 +191,7 @@ def excluir_curso(id):
     except Exception as e:
         db.session.rollback()
         flash(f"Erro ao excluir o curso: {str(e)}", "danger")
-    return redirect(url_for('cursos'))
+    return redirect(url_for('listar_cursos'))
 
 @app.route('/cursos/excluir_selecionados', methods=['POST'])
 @login_required
@@ -204,7 +204,7 @@ def excluir_cursos_selecionados():
             # Deleta os cursos selecionados
             Curso.query.filter(Curso.id.in_(ids)).delete(synchronize_session=False)
             db.session.commit()
-            flash(f"{len(ids)} cursos excluídos com sucesso!", "success")
+            flash(f"{len(ids)} curso(s) excluído(s) com sucesso!", "success")
             return jsonify({"success": True})
         except Exception as e:
             db.session.rollback()
