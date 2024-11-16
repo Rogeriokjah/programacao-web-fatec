@@ -5,7 +5,6 @@
 {% block content %}
 <h2>Lista de Cursos</h2>
 
-<!-- Botões para Adicionar Novo Curso e Excluir Selecionados -->
 <div class="button-group">
     <button type="button" class="button large-button" id="openModal">Adicionar Novo Curso</button>
     <button type="button" class="button button-danger large-button" id="deleteSelected" disabled>Excluir Selecionados</button>
@@ -50,93 +49,168 @@
 </table>
 
 <!-- Modal de Adição de Cursos -->
-<div id="modalCurso" class="modal">
+<div id="modal" class="modal">
     <div class="modal-content">
-        <span class="close" id="closeModalCurso">&times;</span>
+        <span class="close" id="closeModal">&times;</span>
         <h2>Adicionar Novo Curso</h2>
-        <form id="cursoForm" method="POST" action="{{ url_for('adicionar_curso') }}">
-            {{ form.hidden_tag() }}
+        <form id="formAddCurso" method="POST" action="{{ url_for('adicionar_curso') }}">
+            <div class="form-row">
+                <div>
+                    <label for="nome_curso">Nome do Curso</label>
+                    <input type="text" id="nome_curso" name="nome" required>
+                </div>
+                <div>
+                    <label for="pesquisar_disciplinas">Pesquisar Disciplinas</label>
+                    <input type="text" id="pesquisar_disciplinas" placeholder="Digite para buscar disciplinas">
+                </div>
+            </div>
             <div>
-                {{ form.nome.label }}
-                <br>
-                {{ form.nome(size=32) }}
-            </div>
-
-            <!-- Campo de Pesquisa de Disciplinas -->
-            <div style="margin-top: 20px;">
-                <label for="searchDisciplinas">Pesquisar Disciplinas</label><br>
-                <input type="text" id="searchDisciplinas" placeholder="Digite para buscar disciplinas" style="width: 100%;">
-            </div>
-
-            <!-- Tabela de Resultados da Pesquisa -->
-            <div id="disciplinasListContainer" style="margin-top: 10px;">
-                <table id="disciplinasList" style="width: 100%; display: none; font-size: 0.9em;">
+                <h3>Disciplinas Disponíveis</h3>
+                <table style="width: 100%;">
                     <thead>
                         <tr>
-                            <th>Nome da Disciplina</th>
-                            <th style="width: 100px;">Ação</th>
+                            <th style="width: 70%;">Nome da Disciplina</th>
+                            <th style="width: 30%;">Ação</th>
                         </tr>
                     </thead>
-                    <tbody id="disciplinasTableBody">
-                        <!-- Resultados da pesquisa aparecerão aqui -->
+                    <tbody id="disciplinas-disponiveis">
+                        {% for disciplina in disciplinas %}
+                        <tr>
+                            <td>{{ disciplina.nome }}</td>
+                            <td>
+                                <button type="button" class="button add-disciplina" data-id="{{ disciplina.id }}">Adicionar</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
-
-            <!-- Tabela de Disciplinas Selecionadas -->
-            <div id="disciplinasListSelected" style="margin-top: 20px;">
-                <h4>Disciplinas Selecionadas</h4>
-                <table style="width: 100%; font-size: 0.9em;">
+            <div>
+                <h3>Disciplinas Selecionadas</h3>
+                <table style="width: 100%;">
                     <thead>
                         <tr>
-                            <th>Nome da Disciplina</th>
-                            <th style="width: 100px;">Ação</th>
+                            <th style="width: 70%;">Nome da Disciplina</th>
+                            <th style="width: 30%;">Ação</th>
                         </tr>
                     </thead>
-                    <tbody id="disciplinasSelectedTableBody">
-                        <!-- Disciplinas selecionadas aparecerão aqui -->
+                    <tbody id="disciplinas-selecionadas">
+                        <!-- Disciplinas serão adicionadas dinamicamente -->
                     </tbody>
                 </table>
             </div>
-
-            <div style="margin-top: 20px;">
+            
+            <input type="hidden" name="disciplinas" id="disciplinasIds">
+            <div class="button-group">
                 <button type="submit" class="button">Adicionar Curso</button>
-                <button type="button" class="button button-secondary" id="cancelModal">Cancelar</button>
+                <button type="button" class="button button-danger" id="cancelModal">Cancelar</button>
             </div>
         </form>
     </div>
 </div>
 
-<style>
-    .disciplinas-container {
-        padding-left: 10px;
-    }
-    .disciplina-item {
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-    }
-    .disciplina-nome {
-        flex: 1;
-    }
-    .disciplina-separador {
-        width: 20px;
-        text-align: center;
-    }
-    .disciplina-carga {
-        width: 80px;
-        text-align: right;
-    }
-</style>
-
 <script>
+    const modal = document.getElementById("modal");
+    const btn = document.getElementById("openModal");
+    const closeModal = document.getElementById("closeModal");
+    const cancelModal = document.getElementById("cancelModal");
+    const searchField = document.getElementById("pesquisar_disciplinas");
+    const disciplinasDisponiveis = document.getElementById("disciplinas-disponiveis");
+    const disciplinasSelecionadas = document.getElementById("disciplinas-selecionadas");
     const deleteSelectedButton = document.getElementById("deleteSelected");
     const selectAllCheckbox = document.getElementById("selectAll");
+    const disciplinasIdsInput = document.getElementById("disciplinasIds");
 
-    // Seleciona ou desmarca todos os cursos
-    selectAllCheckbox.addEventListener('change', function() {
+    btn.onclick = () => {
+        modal.style.display = "block";
+    };
+
+    closeModal.onclick = cancelModal.onclick = () => {
+        modal.style.display = "none";
+        document.getElementById("formAddCurso").reset();
+        disciplinasSelecionadas.innerHTML = "";
+        disciplinasIdsInput.value = "";
+    };
+
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    };
+
+    searchField.addEventListener("keyup", () => {
+        const query = searchField.value.trim();
+        if (query.length >= 1) {
+            fetch(`{{ url_for('buscar_disciplinas') }}?query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(disciplinas => {
+                    disciplinasDisponiveis.innerHTML = "";
+                    disciplinas.forEach(disciplina => {
+                        const row = `
+                            <tr>
+                                <td>${disciplina.nome}</td>
+                                <td>
+                                    <button type="button" class="button add-disciplina" data-id="${disciplina.id}">Adicionar</button>
+                                </td>
+                            </tr>
+                        `;
+                        disciplinasDisponiveis.insertAdjacentHTML("beforeend", row);
+                    });
+                })
+                .catch(error => alert("Erro ao buscar disciplinas"));
+        } else {
+            disciplinasDisponiveis.innerHTML = "";
+        }
+    });
+
+    disciplinasDisponiveis.addEventListener("click", (event) => {
+        if (event.target.classList.contains("add-disciplina")) {
+            const row = event.target.closest("tr");
+            const id = event.target.dataset.id;
+            const name = row.children[0].textContent;
+
+            // Adiciona a disciplina na lista de selecionadas
+            disciplinasSelecionadas.innerHTML += `
+                <tr data-id="${id}">
+                    <td>${name}</td>
+                    <td>
+                        <button type="button" class="button button-danger remove-disciplina">Remover</button>
+                    </td>
+                </tr>`;
+            row.remove();
+
+            updateSelectedIds();
+        }
+    });
+
+    disciplinasSelecionadas.addEventListener("click", (event) => {
+        if (event.target.classList.contains("remove-disciplina")) {
+            const row = event.target.closest("tr");
+            const id = row.dataset.id;
+            const name = row.children[0].textContent;
+
+            // Adiciona a disciplina de volta à lista de disponíveis
+            disciplinasDisponiveis.innerHTML += `
+                <tr>
+                    <td>${name}</td>
+                    <td>
+                        <button type="button" class="button add-disciplina" data-id="${id}">Adicionar</button>
+                    </td>
+                </tr>`;
+            row.remove();
+
+            updateSelectedIds();
+        }
+    });
+
+    function updateSelectedIds() {
+        const selectedIds = Array.from(disciplinasSelecionadas.querySelectorAll("tr")).map(row => row.dataset.id);
+        disciplinasIdsInput.value = selectedIds.join(",");
+    }
+
+    selectAllCheckbox.addEventListener("change", function () {
         document.querySelectorAll('.selectItem').forEach(item => {
-            item.checked = selectAllCheckbox.checked;
+            item.checked = this.checked;
         });
         toggleDeleteButton();
     });
@@ -150,144 +224,17 @@
         deleteSelectedButton.disabled = selectedItems.length === 0;
     }
 
-    deleteSelectedButton.addEventListener('click', function(event) {
-        event.preventDefault();
-        const selectedIds = Array.from(document.querySelectorAll('.selectItem:checked'))
-                                 .map(item => item.dataset.id);
-
+    deleteSelectedButton.addEventListener("click", () => {
+        const selectedIds = Array.from(document.querySelectorAll(".selectItem:checked")).map(item => item.dataset.id);
         if (selectedIds.length > 0) {
             fetch("{{ url_for('excluir_cursos_selecionados') }}", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ curso_ids: selectedIds })
             })
-            .then(response => {
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert("Erro ao excluir cursos.");
-                }
-            })
-            .finally(() => {
-                document.querySelectorAll('.selectItem').forEach(item => item.checked = false);
-                selectAllCheckbox.checked = false;
-                toggleDeleteButton();
-            });
+                .then(response => response.ok ? window.location.reload() : alert("Erro ao excluir cursos"))
+                .catch(() => alert("Erro na exclusão"));
         }
     });
-
-    // Modal logic
-    const modal = document.getElementById("modalCurso");
-    const btn = document.getElementById("openModal");
-    const span = document.getElementById("closeModalCurso");
-    const cancelModal = document.getElementById("cancelModal");
-
-    btn.onclick = function() {
-        modal.style.display = "block";
-    }
-
-    span.onclick = cancelModal.onclick = function() {
-        modal.style.display = "none";
-    }
-
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
-
-    // Autocomplete logic for searching disciplines
-    let timeout;
-    const selectedDisciplinas = [];
-    document.getElementById("searchDisciplinas").addEventListener("keyup", function() {
-        clearTimeout(timeout);
-        const query = this.value;
-        
-        if (query.length >= 1) {
-            timeout = setTimeout(() => {
-                searchDisciplinas(query);
-            }, 300);
-        }
-    });
-
-    function searchDisciplinas(query) {
-        fetch(`{{ url_for('buscar_disciplinas') }}?query=${query}&exclude=${selectedDisciplinas.join(",")}`)
-            .then(response => response.json())
-            .then(data => {
-                const disciplinasTableBody = document.getElementById("disciplinasTableBody");
-                disciplinasTableBody.innerHTML = '';
-                document.getElementById("disciplinasList").style.display = data.length > 0 ? 'table' : 'none';
-                
-                data.forEach(disciplina => {
-                    const row = document.createElement("tr");
-
-                    const nomeCell = document.createElement("td");
-                    nomeCell.textContent = disciplina.nome;
-                    row.appendChild(nomeCell);
-
-                    const actionCell = document.createElement("td");
-                    const addButton = document.createElement("button");
-                    addButton.textContent = "Adicionar";
-                    addButton.classList.add("add-disciplina");
-                    addButton.onclick = (event) => {
-                        event.preventDefault();
-                        addDisciplina(disciplina.id, disciplina.nome);
-                    };
-                    actionCell.appendChild(addButton);
-                    row.appendChild(actionCell);
-
-                    disciplinasTableBody.appendChild(row);
-                });
-            });
-    }
-
-    function addDisciplina(id, nome) {
-        if (!selectedDisciplinas.includes(id.toString())) {
-            selectedDisciplinas.push(id.toString());
-            const selectedTableBody = document.getElementById("disciplinasSelectedTableBody");
-
-            const row = document.createElement("tr");
-            row.id = `selected-disciplina-${id}`;
-
-            const nomeCell = document.createElement("td");
-            nomeCell.textContent = nome;
-            row.appendChild(nomeCell);
-
-            const actionCell = document.createElement("td");
-            const removeButton = document.createElement("button");
-            removeButton.textContent = "Remover";
-            removeButton.classList.add("remove-disciplina");
-            removeButton.onclick = () => removeDisciplina(id);
-            actionCell.appendChild(removeButton);
-            row.appendChild(actionCell);
-
-            const input = document.createElement("input");
-            input.type = "hidden";
-            input.name = "disciplinas";
-            input.value = id;
-            row.appendChild(input);
-
-            selectedTableBody.appendChild(row);
-
-            const query = document.getElementById("searchDisciplinas").value;
-            if (query.length >= 1) {
-                searchDisciplinas(query);
-            }
-        }
-    }
-
-    function removeDisciplina(id) {
-        const index = selectedDisciplinas.indexOf(id.toString());
-        if (index > -1) {
-            selectedDisciplinas.splice(index, 1);
-            document.getElementById(`selected-disciplina-${id}`).remove();
-
-            const query = document.getElementById("searchDisciplinas").value;
-            searchDisciplinas(query);
-        }
-    }
 </script>
-
 {% endblock %}

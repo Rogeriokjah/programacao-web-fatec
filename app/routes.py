@@ -139,15 +139,16 @@ def listar_cursos():
 @login_required
 def adicionar_curso():
     nome_curso = request.form.get('nome')
-    disciplinas_ids = request.form.getlist('disciplinas')  # Recebe a lista de IDs de disciplinas
-    
+    disciplinas_ids = request.form.get('disciplinas', '')
+
+    # Converte IDs separados por vírgulas em uma lista de inteiros
+    disciplinas_ids = [int(d_id) for d_id in disciplinas_ids.split(",") if d_id]
+
     novo_curso = Curso(nome=nome_curso)
     db.session.add(novo_curso)
-    db.session.commit()  # Salva o curso primeiro para obter o ID
+    db.session.commit()
 
-    # Relaciona as disciplinas selecionadas ao curso
     if disciplinas_ids:
-        disciplinas_ids = [int(d_id) for d_id in disciplinas_ids]  # Converte para inteiros
         disciplinas = Disciplina.query.filter(Disciplina.id.in_(disciplinas_ids)).all()
         novo_curso.disciplinas.extend(disciplinas)
         db.session.commit()

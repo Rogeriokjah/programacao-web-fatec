@@ -130,19 +130,13 @@ button:hover, .button:hover {
 
 /* Estilo específico para botões de ação (Excluir) */
 .button-danger {
-    background-color: #d9534f; /* Cor do fundo vermelho */
-    color: white; /* Texto branco */
-    padding: 5px 10px; /* Espaçamento interno do botão */
-    font-size: 14px; /* Tamanho da fonte */
-    border: none; /* Remove borda padrão */
-    border-radius: 5px; /* Bordas arredondadas */
-    cursor: pointer; /* Aponta que o elemento é clicável */
-    text-align: center; /* Centraliza o texto */
+    background-color: #d9534f;
+    margin-top: 20px;
+    margin-right: 20px;
 }
 
 .button-danger:hover {
     background-color: #c9302c;
-    color: white;
 }
 
 /* Alinhamento centralizado no formulário */
@@ -246,13 +240,14 @@ button:disabled {
 
 .remove-disciplina {
     cursor: pointer;
-    color: #d9534f;
-    font-weight: bold;
+    background-color: #d9534f;
+    color: white;
     margin-left: 5px;
     font-size: 16px;
 }
 .remove-disciplina:hover {
     color: #c9302c;
+    color: gray;
 }
 
 /* Define uma linha flexível para os inputs */
