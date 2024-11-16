@@ -130,13 +130,19 @@ button:hover, .button:hover {
 
 /* Estilo específico para botões de ação (Excluir) */
 .button-danger {
-    background-color: #d9534f;
-    margin-top: 20px;
-    margin-right: 20px;
+    background-color: #d9534f; /* Cor do fundo vermelho */
+    color: white; /* Texto branco */
+    padding: 5px 10px; /* Espaçamento interno do botão */
+    font-size: 14px; /* Tamanho da fonte */
+    border: none; /* Remove borda padrão */
+    border-radius: 5px; /* Bordas arredondadas */
+    cursor: pointer; /* Aponta que o elemento é clicável */
+    text-align: center; /* Centraliza o texto */
 }
 
 .button-danger:hover {
     background-color: #c9302c;
+    color: white;
 }
 
 /* Alinhamento centralizado no formulário */
@@ -168,6 +174,17 @@ form {
     width: 80%;
     max-width: 500px;
     border-radius: 5px;
+    max-height: 80vh; /* Define uma altura máxima */
+    overflow-y: auto; /* Permite scroll interno */
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espaçamento entre os elementos */
+}
+
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espaçamento entre os campos no formulário */
 }
 
 .close {
@@ -241,18 +258,17 @@ button:disabled {
 /* Define uma linha flexível para os inputs */
 .form-row {
     display: flex;
-    gap: 10px; /* Espaçamento entre os campos */
-    flex-wrap: wrap; /* Permite que os campos quebrem a linha em telas menores */
+    flex-wrap: wrap;
+    gap: 10px; /* Espaçamento entre os inputs */
 }
 
-.form-row label, .form-row input {
-    flex: 1; /* Faz com que cada input ocupe o mesmo espaço */
-    min-width: 100px; /* Define um tamanho mínimo para os inputs */
+.form-row > div {
+    flex: 1; /* Faz com que os campos tenham tamanhos iguais */
+    min-width: 45%; /* Define um tamanho mínimo */
 }
-
 /* Ajusta o campo de disciplinas para não ocupar espaço excessivo */
 #disciplinas {
     width: 100%;
-    max-height: 100px; /* Define uma altura máxima para o campo de disciplinas */
+    max-height: 150px; /* Define uma altura máxima para o campo de disciplinas */
     overflow-y: auto; /* Adiciona barra de rolagem se necessário */
 }
