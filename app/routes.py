@@ -196,10 +196,23 @@ def excluir_curso(id):
 @app.route('/cursos/excluir_selecionados', methods=['POST'])
 @login_required
 def excluir_cursos_selecionados():
-    ids = request.json.get('curso_ids', [])
-    Curso.query.filter(Curso.id.in_(ids)).delete(synchronize_session='fetch')
-    db.session.commit()
-    return jsonify({"success": True})
+    data = request.get_json()
+    ids = data.get('curso_ids', [])
+    
+    if ids:
+        try:
+            # Deleta os cursos selecionados
+            Curso.query.filter(Curso.id.in_(ids)).delete(synchronize_session=False)
+            db.session.commit()
+            flash(f"{len(ids)} cursos excluídos com sucesso!", "success")
+            return jsonify({"success": True})
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erro ao excluir os cursos: {str(e)}", "danger")
+            return jsonify({"success": False, "error": str(e)})
+    else:
+        flash("Nenhum curso selecionado para exclusão.", "warning")
+        return jsonify({"success": False, "message": "Nenhum curso selecionado."})
 
 
 @app.route('/professores', methods=['GET', 'POST'])

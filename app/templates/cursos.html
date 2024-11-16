@@ -5,23 +5,26 @@
 {% block content %}
 <h2>Lista de Cursos</h2>
 
-<!-- Formulário de Adição de Cursos -->
+<!-- Botões para Adicionar Novo Curso e Excluir Selecionados -->
 <div class="button-group">
     <button type="button" class="button large-button" id="openModal">Adicionar Novo Curso</button>
+    <button type="button" class="button button-danger large-button" id="deleteSelected" disabled>Excluir Selecionados</button>
 </div>
 
 <table style="width: 100%;">
     <thead>
         <tr>
-            <th style="width: 25%;">Nome</th>
-            <th style="width: 40%;">Disciplinas</th>
-            <th style="width: 10%; text-align: center;">Carga Horária (horas)</th>
-            <th style="width: 20%; text-align: center;">Ações</th>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th>Nome</th>
+            <th>Disciplinas</th>
+            <th>Carga Horária (horas)</th>
+            <th>Ações</th>
         </tr>
     </thead>
     <tbody>
         {% for curso in cursos %}
         <tr>
+            <td><input type="checkbox" class="selectItem" data-id="{{ curso.id }}"></td>
             <td>{{ curso.nome }}</td>
             <td>
                 <div class="disciplinas-container">
@@ -34,10 +37,8 @@
                     {% endfor %}
                 </div>
             </td>
-            <td style="text-align: center;">
-                {{ curso.carga_horaria_total }}
-            </td>
-            <td style="text-align: center;">
+            <td>{{ curso.carga_horaria_total }}</td>
+            <td>
                 <a href="{{ url_for('editar_curso', id=curso.id) }}" class="button">Editar</a>
                 <form action="{{ url_for('excluir_curso', id=curso.id) }}" method="POST" style="display:inline;">
                     <button type="submit" class="button button-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</button>
@@ -113,23 +114,71 @@
     .disciplina-item {
         display: flex;
         justify-content: space-between;
-        gap: 10px; /* Espaço entre os elementos */
+        gap: 10px;
     }
     .disciplina-nome {
-        flex: 1; /* Nome da disciplina ocupa o espaço disponível */
+        flex: 1;
     }
     .disciplina-separador {
-        width: 20px; /* Largura fixa para o hífen */
-        text-align: center; /* Centraliza o hífen */
+        width: 20px;
+        text-align: center;
     }
     .disciplina-carga {
-        width: 80px; /* Largura fixa para as horas */
-        text-align: right; /* Alinha as horas à direita */
+        width: 80px;
+        text-align: right;
     }
 </style>
 
 <script>
-    // Lógica do modal
+    const deleteSelectedButton = document.getElementById("deleteSelected");
+    const selectAllCheckbox = document.getElementById("selectAll");
+
+    // Seleciona ou desmarca todos os cursos
+    selectAllCheckbox.addEventListener('change', function() {
+        document.querySelectorAll('.selectItem').forEach(item => {
+            item.checked = selectAllCheckbox.checked;
+        });
+        toggleDeleteButton();
+    });
+
+    document.querySelectorAll('.selectItem').forEach(item => {
+        item.addEventListener('change', toggleDeleteButton);
+    });
+
+    function toggleDeleteButton() {
+        const selectedItems = document.querySelectorAll('.selectItem:checked');
+        deleteSelectedButton.disabled = selectedItems.length === 0;
+    }
+
+    deleteSelectedButton.addEventListener('click', function(event) {
+        event.preventDefault();
+        const selectedIds = Array.from(document.querySelectorAll('.selectItem:checked'))
+                                 .map(item => item.dataset.id);
+
+        if (selectedIds.length > 0) {
+            fetch("{{ url_for('excluir_cursos_selecionados') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ curso_ids: selectedIds })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert("Erro ao excluir cursos.");
+                }
+            })
+            .finally(() => {
+                document.querySelectorAll('.selectItem').forEach(item => item.checked = false);
+                selectAllCheckbox.checked = false;
+                toggleDeleteButton();
+            });
+        }
+    });
+
+    // Modal logic
     const modal = document.getElementById("modalCurso");
     const btn = document.getElementById("openModal");
     const span = document.getElementById("closeModalCurso");
@@ -149,9 +198,9 @@
         }
     }
 
-    // Lógica de autocomplete com debounce para buscar disciplinas
+    // Autocomplete logic for searching disciplines
     let timeout;
-    const selectedDisciplinas = []; // Lista de disciplinas selecionadas
+    const selectedDisciplinas = [];
     document.getElementById("searchDisciplinas").addEventListener("keyup", function() {
         clearTimeout(timeout);
         const query = this.value;
@@ -183,7 +232,7 @@
                     addButton.textContent = "Adicionar";
                     addButton.classList.add("add-disciplina");
                     addButton.onclick = (event) => {
-                        event.preventDefault();  // Impede a submissão do formulário
+                        event.preventDefault();
                         addDisciplina(disciplina.id, disciplina.nome);
                     };
                     actionCell.appendChild(addButton);
@@ -199,7 +248,6 @@
             selectedDisciplinas.push(id.toString());
             const selectedTableBody = document.getElementById("disciplinasSelectedTableBody");
 
-            // Adiciona a disciplina à tabela de selecionadas
             const row = document.createElement("tr");
             row.id = `selected-disciplina-${id}`;
 
@@ -223,10 +271,9 @@
 
             selectedTableBody.appendChild(row);
 
-            // Atualiza a lista de pesquisa
             const query = document.getElementById("searchDisciplinas").value;
             if (query.length >= 1) {
-                searchDisciplinas(query);  // Refaz a busca para remover a disciplina recém-adicionada
+                searchDisciplinas(query);
             }
         }
     }
@@ -237,9 +284,8 @@
             selectedDisciplinas.splice(index, 1);
             document.getElementById(`selected-disciplina-${id}`).remove();
 
-            // Atualiza a lista de pesquisa, independentemente do comprimento do query
             const query = document.getElementById("searchDisciplinas").value;
-            searchDisciplinas(query);  // Refaz a busca para adicionar a disciplina removida
+            searchDisciplinas(query);
         }
     }
 </script>

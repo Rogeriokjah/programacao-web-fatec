@@ -237,3 +237,22 @@ button:disabled {
 .remove-disciplina:hover {
     color: #c9302c;
 }
+
+/* Define uma linha flexível para os inputs */
+.form-row {
+    display: flex;
+    gap: 10px; /* Espaçamento entre os campos */
+    flex-wrap: wrap; /* Permite que os campos quebrem a linha em telas menores */
+}
+
+.form-row label, .form-row input {
+    flex: 1; /* Faz com que cada input ocupe o mesmo espaço */
+    min-width: 100px; /* Define um tamanho mínimo para os inputs */
+}
+
+/* Ajusta o campo de disciplinas para não ocupar espaço excessivo */
+#disciplinas {
+    width: 100%;
+    max-height: 100px; /* Define uma altura máxima para o campo de disciplinas */
+    overflow-y: auto; /* Adiciona barra de rolagem se necessário */
+}

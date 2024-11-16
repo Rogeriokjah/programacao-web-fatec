@@ -2,17 +2,33 @@
 {% block title %}Professores{% endblock %}
 {% block content %}
 <h2>Professores</h2>
-<form action="{{ url_for('professores') }}" method="POST">
-    {{ form.hidden_tag() }}
-    {{ form.nome.label }} {{ form.nome(size=20) }}
-    {{ form.telefone.label }} {{ form.telefone(size=20) }}<br>
-    {{ form.usuario.label }} {{ form.usuario(size=20) }}
-    {{ form.senha.label }} {{ form.senha(size=20) }}<br>
-    {{ form.disciplinas.label }}<br>
-    {{ form.disciplinas(size=20, multiple=true) }}<br>
-    <button type="submit">Adicionar Professor</button>
+<form method="POST" action="{{ url_for('professores') }}">
+    <div class="form-row">
+        <label for="nome">Nome</label>
+        <input type="text" id="nome" name="nome">
+    </div>
+    <div class="form-row">
+        <label for="telefone">Telefone</label>
+        <input type="text" id="telefone" name="telefone">
+    </div>
+    <div class="form-row">
+        <label for="usuario">Usuário</label>
+        <input type="text" id="usuario" name="usuario">
+    </div>
+    <div class="form-row">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" name="senha">
+    </div>
+    <div class="form-row">
+        <label for="disciplinas">Disciplinas</label>
+        <select id="disciplinas" name="disciplinas" multiple>
+            {% for disciplina in disciplinas %}
+                <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="button">Salvar</button>
 </form>
-
 <h3>Lista de Professores</h3>
 <table>
     <tr>
