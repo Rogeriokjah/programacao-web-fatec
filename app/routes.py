@@ -97,7 +97,7 @@ def editar_disciplina(id):
         disciplina.carga_horaria = form.carga_horaria.data
         db.session.commit()
         flash("Disciplina atualizada com sucesso!", "success")
-        return redirect(url_for('disciplinas'))
+        return redirect(url_for('listar_disciplinas'))
     return render_template('editar_disciplina.html', form=form, disciplina=disciplina)
 
 @app.route('/disciplinas/excluir/<int:id>', methods=['POST'])
@@ -107,7 +107,7 @@ def excluir_disciplina(id):
     db.session.delete(disciplina)
     db.session.commit()
     flash("Disciplina excluída com sucesso!", "success")
-    return redirect(url_for('disciplinas'))
+    return redirect(url_for('listar_disciplinas'))
 
 @app.route('/disciplinas/excluir_selecionadas', methods=['POST'])
 @login_required
