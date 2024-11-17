@@ -70,7 +70,9 @@ def dashboard():
 @login_required
 def listar_disciplinas():
     form = DisciplinaForm()
-    disciplinas = Disciplina.query.all()
+    limite = request.args.get('limite', 10, type=int)  # Define um limite padrão de 10
+    disciplinas = Disciplina.query.limit(limite).all()
+    #disciplinas = Disciplina.query.all()
     return render_template('disciplinas.html', disciplinas=disciplinas, form=form, active_page='disciplinas')
 
 @app.route('/disciplinas/criar', methods=['POST'])
@@ -240,10 +242,19 @@ def adicionar_professor():
     telefone = request.form.get("telefone")
     usuario = request.form.get("usuario")
     senha = request.form.get("senha")
+    disciplinas_ids = request.form.get('disciplinas', '')
     novo_professor = Professor(nome=nome, telefone=telefone, usuario=usuario, senha=senha)
     db.session.add(novo_professor)
     db.session.commit()
-    return jsonify({"message": "Professor adicionado com sucesso!"})
+    
+    disciplinas_ids = [int(d_id) for d_id in disciplinas_ids.split(",") if d_id]
+    if disciplinas_ids:
+        disciplinas = Disciplina.query.filter(Disciplina.id.in_(disciplinas_ids)).all()
+    novo_professor.disciplinas.extend(disciplinas)
+    db.session.commit()
+    flash("Curso adicionado com sucesso!", "success")
+    return redirect(url_for('listar_professores'))
+    #return jsonify({"message": "Professor adicionado com sucesso!"})
 
 @app.route('/editar_professor/<int:professor_id>', methods=['POST'])
 def editar_professor(professor_id):
