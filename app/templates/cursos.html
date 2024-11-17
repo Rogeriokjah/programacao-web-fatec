@@ -27,13 +27,19 @@
             <td>{{ curso.nome }}</td>
             <td>
                 <div class="disciplinas-container">
-                    {% for disciplina in curso.disciplinas %}
-                    <div class="disciplina-item">
-                        <span class="disciplina-nome">{{ disciplina.nome }}</span>
-                        <span class="disciplina-separador">-</span>
-                        <span class="disciplina-carga">{{ disciplina.carga_horaria }} horas</span>
-                    </div>
-                    {% endfor %}
+                    <table class="inner-table">
+                        <tbody>
+                            {% for disciplina in curso.disciplinas %}
+                            <tr>
+                                <td class="disciplina-nome">{{ disciplina.nome }}</td>
+                                <td class="disciplina-separador">
+                                    <div class="hifen">-</div>
+                                </td>
+                                <td class="disciplina-carga">{{ disciplina.carga_horaria }} horas</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </td>
             <td>{{ curso.carga_horaria_total }}</td>
@@ -47,7 +53,6 @@
         {% endfor %}
     </tbody>
 </table>
-
 <!-- Modal de Adição de Cursos -->
 <div id="modal" class="modal">
     <div class="modal-content">

@@ -11,11 +11,18 @@ body, html {
 }
 
 .sidebar {
-    width: 200px;
-    background-color: #333;
-    color: white;
+    position: fixed; /* Fixa o menu na posição */
+    top: 0;
+    left: 0;
+    width: 250px; /* Define a largura fixa do menu */
+    height: 100vh; /* Faz o menu ocupar toda a altura da janela */
+    background-color: #333; /* Cor de fundo */
+    color: white; /* Cor do texto */
+    display: flex;
+    flex-direction: column; /* Para organizar itens em coluna */
     padding: 20px;
     box-sizing: border-box;
+    z-index: 1000; /* Garante que fique acima de outros elementos */
 }
 
 .sidebar h2 {
@@ -47,11 +54,13 @@ body, html {
 }
 
 .main-content {
-    flex: 1;
-    background-color: #f4f4f4;
+    margin-left: 250px; /* Espaço suficiente para o menu lateral fixo */
     padding: 20px;
     display: flex;
     flex-direction: column;
+    align-items: center; /* Centraliza horizontalmente */
+    /*justify-content: top; /* Centraliza verticalmente, caso necessário */
+    min-height: 100vh; /* Garante que ocupe pelo menos a altura total da janela */
     box-sizing: border-box;
 }
 
@@ -103,12 +112,12 @@ th, td {
 }
 
 th {
-    background-color: #333;
     color: white;
+    background-color: #333;
 }
 
 tbody tr:nth-child(even) {
-    background-color: #f2f2f2;
+    background-color: transparent !important;
 }
 
 /* Estilo para botões */
@@ -266,4 +275,81 @@ button:disabled {
     width: 100%;
     max-height: 150px; /* Define uma altura máxima para o campo de disciplinas */
     overflow-y: auto; /* Adiciona barra de rolagem se necessário */
+}
+
+.inner-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: none;
+    table-layout: fixed;
+}
+
+.inner-table tr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inner-table td {
+    border: none; /* Remove as bordas */
+    padding: 2px 5px;
+}
+
+.inner-table-discipline-name {
+    text-align: left;
+}
+
+.inner-table-separator {
+    flex: 0;
+    text-align: center;
+}
+
+.inner-table .disciplina-separador {
+    text-align: center; /* Hífen centralizado */
+    width: 15px; /* Define uma largura fixa para consistência */
+}
+
+.inner-table .disciplina-carga {
+    text-align: right; /* Carga horária alinhada à direita */
+    white-space: nowrap; /* Evita quebras de linha */
+}
+
+.inner-table tr:nth-child(odd),
+.inner-table tr:nth-child(even) {
+    background-color: transparent !important;
+}
+
+.inner-table-hours {
+    flex: 0;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.disciplina-item {
+    width: 100%;
+    display: grid; /* Alinha os itens em grid */
+    grid-template-columns: 1fr auto auto; /* Define as colunas: nome, hífen e carga */
+    align-items: center; /* Centraliza verticalmente os itens */
+    gap: 5px; /* Espaço entre as colunas */
+    margin: 2px 0; /* Margem entre as linhas de disciplinas */
+}
+
+/* Estilo para disciplina-nome */
+.disciplina-nome {
+    text-align: left;
+    white-space: nowrap; /* Evita quebras de linha */
+    width: 70%
+}
+
+/* Estilo para disciplina-separador */
+.disciplina-separador {
+    text-align: center;
+    width: 10%; /* Define uma largura fixa */
+}
+
+/* Estilo para disciplina-carga */
+.disciplina-carga {
+    text-align: right;
+    white-space: nowrap;
+    width: 20%;
 }
