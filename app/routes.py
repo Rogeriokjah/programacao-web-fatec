@@ -216,23 +216,80 @@ def excluir_cursos_selecionados():
         return jsonify({"success": False, "message": "Nenhum curso selecionado."})
 
 
-@app.route('/professores', methods=['GET', 'POST'])
-@login_required
-def professores():
-    form = ProfessorForm()
-    form.disciplinas.choices = [(d.id, d.nome) for d in Disciplina.query.all()]
-    if form.validate_on_submit():
-        novo_professor = Professor(
-            nome=form.nome.data,
-            telefone=form.telefone.data,
-            usuario=form.usuario.data,
-            senha=form.senha.data
-        )
-        db.session.add(novo_professor)
-        db.session.commit()
-        flash("Professor adicionado com sucesso!", "success")
+@app.route('/professores', methods=['GET'])
+def listar_professores():
     professores = Professor.query.all()
-    return render_template('professores.html', professores=professores, form=form, active_page='professores')
+    return render_template('professores.html', professores=professores)
+
+@app.route('/buscar_professor', methods=['GET'])
+def buscar_professor():
+    professor_id = request.args.get('id')
+    professor = Professor.query.get(professor_id)
+    if professor:
+        return jsonify({
+            "id": professor.id,
+            "nome": professor.nome,
+            "telefone": professor.telefone,
+            "usuario": professor.usuario
+        })
+    return jsonify({"error": "Professor não encontrado"}), 404
+
+@app.route('/adicionar_professor', methods=['POST'])
+def adicionar_professor():
+    nome = request.form.get("nome")
+    telefone = request.form.get("telefone")
+    usuario = request.form.get("usuario")
+    senha = request.form.get("senha")
+    novo_professor = Professor(nome=nome, telefone=telefone, usuario=usuario, senha=senha)
+    db.session.add(novo_professor)
+    db.session.commit()
+    return jsonify({"message": "Professor adicionado com sucesso!"})
+
+@app.route('/editar_professor/<int:professor_id>', methods=['POST'])
+def editar_professor(professor_id):
+    professor = Professor.query.get(professor_id)
+    if not professor:
+        return jsonify({"error": "Professor não encontrado"}), 404
+    professor.nome = request.form.get("nome")
+    professor.telefone = request.form.get("telefone")
+    professor.usuario = request.form.get("usuario")
+    db.session.commit()
+    return jsonify({"message": "Professor atualizado com sucesso!"})
+
+@app.route('/professores/excluir/<int:id>', methods=['POST'])
+@login_required
+def excluir_professor(id):
+    professor = Professor.query.get_or_404(id)
+    try:
+        db.session.delete(professor)
+        db.session.commit()
+        flash("Professor excluído com sucesso!", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao excluir o Professor: {str(e)}", "danger")
+    return redirect(url_for('listar_professores'))
+
+@app.route('/professores/excluir_selecionados', methods=['POST'])
+@login_required
+def excluir_professores_selecionados():
+    data = request.get_json()
+    ids = data.get('professores_ids', [])
+    
+    if ids:
+        try:
+            # Deleta os Professores selecionados
+            Professor.query.filter(Professor.id.in_(ids)).delete(synchronize_session=False)
+            db.session.commit()
+            flash(f"{len(ids)} Professor(es) excluído(s) com sucesso!", "success")
+            return jsonify({"success": True})
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erro ao excluir o(s) Professor(es): {str(e)}", "danger")
+            return jsonify({"success": False, "error": str(e)})
+    else:
+        flash("Nenhum professor selecionado para exclusão.", "warning")
+        return jsonify({"success": False, "message": "Nenhum curso selecionado."})
+
 
 @app.route('/alunos', methods=['GET', 'POST'])
 @login_required

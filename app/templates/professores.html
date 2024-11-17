@@ -1,60 +1,128 @@
 {% extends "base.html" %}
+
 {% block title %}Professores{% endblock %}
+
 {% block content %}
-<h2>Professores</h2>
-<form method="POST" action="{{ url_for('professores') }}">
-    <div class="form-row">
-        <label for="nome">Nome</label>
-        <input type="text" id="nome" name="nome">
-    </div>
-    <div class="form-row">
-        <label for="telefone">Telefone</label>
-        <input type="text" id="telefone" name="telefone">
-    </div>
-    <div class="form-row">
-        <label for="usuario">Usuário</label>
-        <input type="text" id="usuario" name="usuario">
-    </div>
-    <div class="form-row">
-        <label for="senha">Senha</label>
-        <input type="password" id="senha" name="senha">
-    </div>
-    <div class="form-row">
-        <label for="disciplinas">Disciplinas</label>
-        <select id="disciplinas" name="disciplinas" multiple>
-            {% for disciplina in disciplinas %}
-                <option value="{{ disciplina.id }}">{{ disciplina.nome }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <button type="submit" class="button">Salvar</button>
-</form>
-<h3>Lista de Professores</h3>
-<table>
-    <tr>
-        <th>Nome</th>
-        <th>Telefone</th>
-        <th>Usuário</th>
-        <th>Disciplinas</th>
-        <th>Ações</th>
-    </tr>
-    {% for professor in professores %}
-    <tr>
-        <td>{{ professor.nome }}</td>
-        <td>{{ professor.telefone }}</td>
-        <td>{{ professor.usuario }}</td>
-        <td>
-            {% for disciplina in professor.disciplinas %}
-                {{ disciplina.nome }}{% if not loop.last %}, {% endif %}
-            {% endfor %}
-        </td>
-        <td>
-            <a href="{{ url_for('editar_professor', id=professor.id) }}">Editar</a>
-            <form action="{{ url_for('excluir_professor', id=professor.id) }}" method="POST" style="display:inline;">
-                <button type="submit">Excluir</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
+<h2>Lista de Professores</h2>
+
+<div class="button-group">
+    <button type="button" class="button large-button" id="openModal">Adicionar Novo Professor</button>
+</div>
+
+<table style="width: 100%;">
+    <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th>Nome</th>
+            <th>Telefone</th>
+            <th>Usuário</th>
+            <th>Disciplinas</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for professor in professores %}
+        <tr>
+            <td><input type="checkbox" class="selectItem" data-id="{{ professor.id }}"></td>
+            <td>{{ professor.nome }}</td>
+            <td>{{ professor.telefone }}</td>
+            <td>{{ professor.usuario }}</td>
+            <td>
+                <div class="disciplinas-container">
+                    <table class="inner-table">
+                        <tbody>
+                            {% for disciplina in professor.disciplinas %}
+                            <tr>
+                                <td class="disciplina-nome">{{ disciplina.nome }}</td>
+                                <td class="disciplina-separador">
+                                    <div class="hifen">-</div>
+                                </td>
+                                <td class="disciplina-carga">{{ disciplina.carga_horaria }} horas</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </td>
+            <td>
+                <button type="button" class="button edit-professor" data-id="{{ professor.id }}">Editar</button>
+                <form action="{{ url_for('excluir_professor', id=professor.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="button button-danger">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+
+<!-- Modal de Adição/Edição -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <h2 id="modalTitle">Adicionar Novo Professor</h2>
+        <form id="formProfessor" method="POST" action="{{ url_for('adicionar_professor') }}">
+            <div class="form-row">
+                <div>
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" name="nome" required>
+                </div>
+                <div>
+                    <label for="telefone">Telefone</label>
+                    <input type="text" id="telefone" name="telefone" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label for="usuario">Usuário</label>
+                    <input type="text" id="usuario" name="usuario" required>
+                </div>
+                <div>
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" required>
+                </div>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="button">Salvar</button>
+                <button type="button" class="button button-danger" id="cancelModal">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modalTitle");
+    const formProfessor = document.getElementById("formProfessor");
+    const closeModal = document.getElementById("closeModal");
+    const cancelModal = document.getElementById("cancelModal");
+    const btnOpenModal = document.getElementById("openModal");
+
+    btnOpenModal.onclick = () => {
+        modal.style.display = "block";
+        modalTitle.textContent = "Adicionar Novo Professor";
+        formProfessor.reset();
+        formProfessor.action = "{{ url_for('adicionar_professor') }}";
+    };
+
+    closeModal.onclick = cancelModal.onclick = () => {
+        modal.style.display = "none";
+        formProfessor.reset();
+    };
+
+    document.querySelectorAll(".edit-professor").forEach(button => {
+        button.addEventListener("click", event => {
+            const id = event.target.dataset.id;
+            fetch(`/buscar_professor?id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    modal.style.display = "block";
+                    modalTitle.textContent = "Editar Professor";
+                    formProfessor.action = `/editar_professor/${id}`;
+                    document.getElementById("nome").value = data.nome;
+                    document.getElementById("telefone").value = data.telefone;
+                    document.getElementById("usuario").value = data.usuario;
+                });
+        });
+    });
+</script>
 {% endblock %}

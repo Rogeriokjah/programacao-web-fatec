@@ -62,6 +62,7 @@ body, html {
     /*justify-content: top; /* Centraliza verticalmente, caso necessário */
     min-height: 100vh; /* Garante que ocupe pelo menos a altura total da janela */
     box-sizing: border-box;
+    max-width: 100%;
 }
 
 header {
@@ -74,6 +75,8 @@ header {
     flex-direction: column;
     align-items: center;
     text-align: center;
+    max-width: 100%;
+
 }
 
 .alert {
@@ -175,7 +178,7 @@ form {
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
-    max-width: 500px;
+    max-width: 600px;
     border-radius: 5px;
     max-height: 80vh; /* Define uma altura máxima */
     overflow-y: auto; /* Permite scroll interno */
@@ -263,7 +266,7 @@ button:disabled {
 .form-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px; /* Espaçamento entre os inputs */
+    gap: 15px; /* Espaçamento entre os inputs */
 }
 
 .form-row > div {
