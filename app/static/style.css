@@ -215,6 +215,8 @@ button:disabled {
 
 .button-group {
     display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 10px; /* Espaço entre os botões */
     margin-bottom: 20px; /* Espaço abaixo dos botões */
 }

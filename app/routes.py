@@ -326,6 +326,7 @@ def alunos():
 def buscar_disciplinas():
     query = request.args.get('query', '')
     exclude = request.args.get('exclude', '')
+    limite = request.args.get('limite', 5, type=int)  # Define um limite padrão de 5
 
     # Converte exclude em uma lista de inteiros
     exclude_ids = list(map(int, exclude.split(','))) if exclude else []
@@ -334,7 +335,7 @@ def buscar_disciplinas():
     disciplinas = Disciplina.query.filter(
         Disciplina.nome.like(f"%{query}%"),
         ~Disciplina.id.in_(exclude_ids)
-    ).all()
+    ).limit(limite).all()
 
     # Retorna as disciplinas no formato JSON
     return jsonify([{'id': d.id, 'nome': d.nome} for d in disciplinas])

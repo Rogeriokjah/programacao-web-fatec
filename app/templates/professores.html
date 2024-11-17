@@ -121,7 +121,7 @@
                     </tbody>
                 </table>
             </div>
-                        
+            
             <input type="hidden" name="disciplinas" id="disciplinasIds">
             <div class="button-group">
                 <button type="submit" class="button">Salvar</button>
@@ -239,10 +239,12 @@
                     document.getElementById("nome").value = data.nome;
                     document.getElementById("telefone").value = data.telefone;
                     document.getElementById("usuario").value = data.usuario;
+                    document.getElementById("pesquisar_disciplinas").value = data.disciplinas;
+
                 });
         });
     });
-    
+
     document.querySelectorAll('.selectItem').forEach(item => {
         item.addEventListener('change', toggleDeleteButton);
     });
