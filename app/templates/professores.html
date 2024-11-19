@@ -135,150 +135,144 @@
 </div>
 
 <script>
-    const modal = document.getElementById("modal");
-    const modalTitle = document.getElementById("modalTitle");
-    const formProfessor = document.getElementById("formProfessor");
-    const searchField = document.getElementById("pesquisar_disciplinas");
-    const disciplinasDisponiveis = document.getElementById("disciplinas-disponiveis");
-    const disciplinasSelecionadas = document.getElementById("disciplinas-selecionadas");
-    const deleteSelectedButton = document.getElementById("deleteSelected");
-    const selectAllCheckbox = document.getElementById("selectAll");
-    const disciplinasIdsInput = document.getElementById("disciplinasIds");
-    const closeModal = document.getElementById("closeModal");
-    const cancelModal = document.getElementById("cancelModal");
-    const btnOpenModal = document.getElementById("openModal");
-
-    btnOpenModal.onclick = () => {
-        modal.style.display = "block";
-        modalTitle.textContent = "Adicionar Novo Professor";
-        formProfessor.reset();
-        formProfessor.action = "{{ url_for('adicionar_professor') }}";
-        disciplinasSelecionadas.innerHTML = "";
-        disciplinasIdsInput.value = "";
-    };
-
-    closeModal.onclick = cancelModal.onclick = () => {
-        modal.style.display = "none";
-        formProfessor.reset();
-        disciplinasSelecionadas.innerHTML = "";
-        disciplinasIdsInput.value = "";
-    };
-    searchField.addEventListener("keyup", () => {
-        const query = searchField.value.trim();
-        if (query.length >= 1) {
-            fetch(`{{ url_for('buscar_disciplinas') }}?query=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(disciplinas => {
-                    disciplinasDisponiveis.innerHTML = "";
-                    disciplinas.forEach(disciplina => {
-                        const row = `
-                            <tr>
-                                <td>${disciplina.nome}</td>
-                                <td>${disciplina.carga_horaria}</td>
-                                <td>
-                                    <button type="button" class="button add-disciplina" data-id="${disciplina.id}">Adicionar</button>
-                                </td>
-                            </tr>
-                        `;
-                        disciplinasDisponiveis.insertAdjacentHTML("beforeend", row);
-                    });
-                })
-                .catch(error => alert("Erro ao buscar disciplinas"));
-        } else {
+    document.addEventListener("DOMContentLoaded", () => {
+        const modal = document.getElementById("modal");
+        const modalTitle = document.getElementById("modalTitle");
+        const formProfessor = document.getElementById("formProfessor");
+        const searchField = document.getElementById("pesquisar_disciplinas");
+        const disciplinasDisponiveis = document.getElementById("disciplinas-disponiveis");
+        const disciplinasSelecionadas = document.getElementById("disciplinas-selecionadas");
+        const disciplinasIdsInput = document.getElementById("disciplinasIds");
+        const closeModal = document.getElementById("closeModal");
+        const cancelModal = document.getElementById("cancelModal");
+        const btnOpenModal = document.getElementById("openModal");
+        
+        let professorId = null; // Armazena o ID do professor em edição
+    
+        // Abrir modal para adicionar professor
+        btnOpenModal.onclick = () => {
+            modal.style.display = "block";
+            modalTitle.textContent = "Adicionar Novo Professor";
+            formProfessor.reset();
+            formProfessor.action = "{{ url_for('adicionar_professor') }}";
+            disciplinasSelecionadas.innerHTML = "";
+            disciplinasIdsInput.value = "";
+            professorId = null;
+            clearDisciplinasDisponiveis();
+        };
+    
+        // Fechar modal
+        closeModal.onclick = cancelModal.onclick = () => {
+            modal.style.display = "none";
+            formProfessor.reset();
+            disciplinasSelecionadas.innerHTML = "";
+            disciplinasIdsInput.value = "";
+            professorId = null;
+            clearDisciplinasDisponiveis();
+        };
+    
+        // Atualizar IDs das disciplinas selecionadas
+        function updateSelectedIds() {
+            const selectedIds = Array.from(disciplinasSelecionadas.querySelectorAll("tr")).map(row => row.dataset.id);
+            disciplinasIdsInput.value = selectedIds.join(",");
+        }
+    
+        // Limpar disciplinas disponíveis
+        function clearDisciplinasDisponiveis() {
             disciplinasDisponiveis.innerHTML = "";
         }
-    });
     
-    disciplinasDisponiveis.addEventListener("click", (event) => {
-        if (event.target.classList.contains("add-disciplina")) {
-            const row = event.target.closest("tr");
-            const id = event.target.dataset.id;
-            const name = row.children[0].textContent;
-            const carga_horaria = row.children[1].textContent;
-            // Adiciona a disciplina na lista de selecionadas
-            disciplinasSelecionadas.innerHTML += `
-                <tr data-id="${id}">
-                    <td>${name}</td>
-                    <td>${carga_horaria}</td>
-                    <td>
-                        <button type="button" class="button button-danger remove-disciplina">Remover</button>
-                    </td>
-                </tr>`;
-            row.remove();
-            updateSelectedIds();
-        }
-    });
-
-    disciplinasSelecionadas.addEventListener("click", (event) => {
-        if (event.target.classList.contains("remove-disciplina")) {
-            const row = event.target.closest("tr");
-            const id = row.dataset.id;
-            const name = row.children[0].textContent;
-            const carga_horaria = row.children[0].textContent;
-            // Adiciona a disciplina de volta à lista de disponíveis
-            disciplinasDisponiveis.innerHTML += `
-                <tr>
-                    <td>${name}</td>
-                    <td>${carga_horaria}</td>
-                    <td>
-                        <button type="button" class="button add-disciplina" data-id="${id}">Adicionar</button>
-                    </td>
-                </tr>`;
-            row.remove();
-            updateSelectedIds();
-        }
-    });
-
-    function updateSelectedIds() {
-        const selectedIds = Array.from(disciplinasSelecionadas.querySelectorAll("tr")).map(row => row.dataset.id);
-        disciplinasIdsInput.value = selectedIds.join(",");
-    }
-
-
-    document.querySelectorAll(".edit-professor").forEach(button => {
-        button.addEventListener("click", event => {
-            const id = event.target.dataset.id;
-            fetch(`/buscar_professor?id=${id}`)
-                .then(response => response.json())
-                .then(data => {
-                    modal.style.display = "block";
-                    modalTitle.textContent = "Editar Professor";
-                    formProfessor.action = `/editar_professor/${id}`;
-                    document.getElementById("nome").value = data.nome;
-                    document.getElementById("telefone").value = data.telefone;
-                    document.getElementById("usuario").value = data.usuario;
-                    document.getElementById("pesquisar_disciplinas").value = data.disciplinas;
-
-                });
+        // Buscar disciplinas disponíveis
+        searchField.addEventListener("input", () => {
+            const query = searchField.value.trim();
+            fetchDisciplinasDisponiveis(query);
         });
-    });
-
-    document.querySelectorAll('.selectItem').forEach(item => {
-        item.addEventListener('change', toggleDeleteButton);
-    });
-
-    selectAllCheckbox.addEventListener("change", function () {
-        document.querySelectorAll('.selectItem').forEach(item => {
-            item.checked = this.checked;
-        });
-        toggleDeleteButton();
-    });
-
-    function toggleDeleteButton() {
-        const selectedItems = document.querySelectorAll('.selectItem:checked');
-        deleteSelectedButton.disabled = selectedItems.length === 0;
-    }
-    deleteSelectedButton.addEventListener("click", () => {
-        const selectedIds = Array.from(document.querySelectorAll(".selectItem:checked")).map(item => item.dataset.id);
-        if (selectedIds.length > 0) {
-            fetch("{{ url_for('excluir_professores_selecionados') }}", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ professores_ids: selectedIds })
-            })
-                .then(response => response.ok ? window.location.reload() : alert("Erro ao excluir professores"))
-                .catch(() => alert("Erro na exclusão"));
+    
+        function fetchDisciplinasDisponiveis(query) {
+            if (query.length > 0) {
+                fetch(`/buscar_disciplinas?query=${encodeURIComponent(query)}&exclude=${disciplinasIdsInput.value}`)
+                    .then(response => response.json())
+                    .then(disciplinas => {
+                        disciplinasDisponiveis.innerHTML = disciplinas
+                            .map(d => `
+                                <tr>
+                                    <td>${d.nome}</td>
+                                    <td>${d.carga_horaria} horas</td>
+                                    <td>
+                                        <button type="button" class="button add-disciplina" data-id="${d.id}" data-nome="${d.nome}" data-carga="${d.carga_horaria}">Adicionar</button>
+                                    </td>
+                                </tr>`).join("");
+                    })
+                    .catch(() => alert("Erro ao buscar disciplinas."));
+            } else {
+                clearDisciplinasDisponiveis();
+            }
         }
+    
+        // Adicionar disciplina
+        disciplinasDisponiveis.addEventListener("click", event => {
+            if (event.target.classList.contains("add-disciplina")) {
+                const disciplinaId = event.target.dataset.id;
+                const disciplinaNome = event.target.dataset.nome;
+                const disciplinaCarga = event.target.dataset.carga;
+    
+                // Adiciona disciplina selecionada
+                disciplinasSelecionadas.innerHTML += `
+                    <tr data-id="${disciplinaId}">
+                        <td>${disciplinaNome}</td>
+                        <td>${disciplinaCarga} horas</td>
+                        <td>
+                            <button type="button" class="button button-danger remove-disciplina">Remover</button>
+                        </td>
+                    </tr>`;
+                updateSelectedIds();
+                fetchDisciplinasDisponiveis(searchField.value.trim());
+            }
+        });
+    
+        // Remover disciplina
+        disciplinasSelecionadas.addEventListener("click", event => {
+            if (event.target.classList.contains("remove-disciplina")) {
+                const row = event.target.closest("tr");
+                row.remove();
+                updateSelectedIds();
+                fetchDisciplinasDisponiveis(searchField.value.trim());
+            }
+        });
+    
+        // Abrir modal para edição
+        document.querySelectorAll(".edit-professor").forEach(button => {
+            button.addEventListener("click", event => {
+                professorId = button.dataset.id;
+                fetch(`/buscar_professor?id=${professorId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert("Erro ao buscar professor.");
+                            return;
+                        }
+                        modal.style.display = "block";
+                        modalTitle.textContent = "Editar Professor";
+                        formProfessor.action = `/editar_professor/${professorId}`;
+                        document.getElementById("nome").value = data.nome;
+                        document.getElementById("telefone").value = data.telefone;
+                        document.getElementById("usuario").value = data.usuario;
+    
+                        disciplinasSelecionadas.innerHTML = data.disciplinas
+                            .map(d => `
+                                <tr data-id="${d.id}">
+                                    <td>${d.nome}</td>
+                                    <td>${d.carga_horaria} horas</td>
+                                    <td>
+                                        <button type="button" class="button button-danger remove-disciplina">Remover</button>
+                                    </td>
+                                </tr>`).join("");
+                        updateSelectedIds();
+                        fetchDisciplinasDisponiveis(searchField.value.trim());
+                    })
+                    .catch(() => alert("Erro ao buscar professor."));
+            });
+        });
     });
 </script>
 {% endblock %}

@@ -232,48 +232,59 @@ def listar_professores():
     return render_template('professores.html', professores=professores)
 
 @app.route('/buscar_professor', methods=['GET'])
+@login_required
 def buscar_professor():
-    professor_id = request.args.get('id')
-    professor = Professor.query.get(professor_id)
-    if professor:
-        return jsonify({
-            "id": professor.id,
-            "nome": professor.nome,
-            "telefone": professor.telefone,
-            "usuario": professor.usuario
-        })
-    return jsonify({"error": "Professor não encontrado"}), 404
-
+    professor_id = request.args.get('id', type=int)
+    professor = Professor.query.get_or_404(professor_id)
+    disciplinas = [{"id": d.id, "nome": d.nome, "carga_horaria": d.carga_horaria} for d in professor.disciplinas]
+    
+    return jsonify({
+        "id": professor.id,
+        "nome": professor.nome,
+        "telefone": professor.telefone,
+        "usuario": professor.usuario,
+        "disciplinas": disciplinas
+    })
+   
+    
 @app.route('/adicionar_professor', methods=['POST'])
 def adicionar_professor():
-    nome = request.form.get("nome")
-    telefone = request.form.get("telefone")
-    usuario = request.form.get("usuario")
-    senha = request.form.get("senha")
-    disciplinas_ids = request.form.get('disciplinas', '')
-    novo_professor = Professor(nome=nome, telefone=telefone, usuario=usuario, senha=senha)
-    db.session.add(novo_professor)
-    db.session.commit()
-    
-    disciplinas_ids = [int(d_id) for d_id in disciplinas_ids.split(",") if d_id]
-    if disciplinas_ids:
-        disciplinas = Disciplina.query.filter(Disciplina.id.in_(disciplinas_ids)).all()
-    novo_professor.disciplinas.extend(disciplinas)
-    db.session.commit()
-    flash("Curso adicionado com sucesso!", "success")
-    return redirect(url_for('listar_professores'))
-    #return jsonify({"message": "Professor adicionado com sucesso!"})
+    nome = request.form.get('nome')
+    telefone = request.form.get('telefone')
+    usuario = request.form.get('usuario')
+    senha = request.form.get('senha')
+    disciplinas_ids = request.form.get('disciplinas')
 
-@app.route('/editar_professor/<int:professor_id>', methods=['POST'])
-def editar_professor(professor_id):
-    professor = Professor.query.get(professor_id)
-    if not professor:
-        return jsonify({"error": "Professor não encontrado"}), 404
-    professor.nome = request.form.get("nome")
-    professor.telefone = request.form.get("telefone")
-    professor.usuario = request.form.get("usuario")
+    professor = Professor(nome=nome, telefone=telefone, usuario=usuario, senha=senha)
+
+    if disciplinas_ids:
+        disciplinas_ids = [int(d_id) for d_id in disciplinas_ids.split(",")]
+        professor.disciplinas = Disciplina.query.filter(Disciplina.id.in_(disciplinas_ids)).all()
+
+    db.session.add(professor)
     db.session.commit()
-    return jsonify({"message": "Professor atualizado com sucesso!"})
+
+    return redirect(url_for('listar_professores'))
+
+
+@app.route('/editar_professor/<int:id>', methods=['POST'])
+def editar_professor(id):
+    professor = Professor.query.get_or_404(id)
+
+    professor.nome = request.form.get('nome')
+    professor.telefone = request.form.get('telefone')
+    professor.usuario = request.form.get('usuario')
+    professor.senha = request.form.get('senha')
+    disciplinas_ids = request.form.get('disciplinas')
+
+    if disciplinas_ids:
+        disciplinas_ids = [int(d_id) for d_id in disciplinas_ids.split(",")]
+        professor.disciplinas = Disciplina.query.filter(Disciplina.id.in_(disciplinas_ids)).all()
+    else:
+        professor.disciplinas = []  # Remove todas as disciplinas vinculadas
+
+    db.session.commit()
+    return redirect(url_for('listar_professores'))
 
 @app.route('/professores/excluir/<int:id>', methods=['POST'])
 @login_required

@@ -14,7 +14,7 @@ body, html {
     position: fixed; /* Fixa o menu na posição */
     top: 0;
     left: 0;
-    width: 250px; /* Define a largura fixa do menu */
+    width: 200px; /* Define a largura fixa do menu */
     height: 100vh; /* Faz o menu ocupar toda a altura da janela */
     background-color: #333; /* Cor de fundo */
     color: white; /* Cor do texto */
