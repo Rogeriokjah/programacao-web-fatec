@@ -173,11 +173,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Remover curso selecionado
+    // Remover curso selecionado e buscar novamente
     cursoSelecionadoDisplay.addEventListener("click", event => {
         if (event.target.classList.contains("remove-curso")) {
             cursoSelecionado.value = "";
             cursoSelecionadoDisplay.textContent = "Nenhum curso selecionado.";
+            const query = pesquisarCurso.value.trim();
+            if (query.length > 0) {
+                buscarCursos(query); // Buscar cursos novamente com o texto no campo de pesquisa
+            }
         }
     });
 });
