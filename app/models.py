@@ -59,5 +59,8 @@ class Aluno(db.Model):
     nome = db.Column(db.String(100), nullable=False)
     cpf = db.Column(db.String(11), unique=True, nullable=False)
     endereco = db.Column(db.String(200))
+    usuario = db.Column(db.String(100))
     senha = db.Column(db.String(100), nullable=False)
-    curso = relationship('Curso', secondary=aluno_curso, backref='alunos')
+    curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
+
+    curso = relationship('Curso', backref='alunos')

@@ -1,39 +1,200 @@
 {% extends "base.html" %}
 {% block title %}Alunos{% endblock %}
 {% block content %}
-<h2>Alunos</h2>
-<form action="{{ url_for('alunos') }}" method="POST">
-    {{ form.hidden_tag() }}
-    {{ form.nome.label }} {{ form.nome(size=20) }}<br>
-    {{ form.cpf.label }} {{ form.cpf(size=20) }}<br>
-    {{ form.endereco.label }} {{ form.endereco(size=30) }}<br>
-    {{ form.senha.label }} {{ form.senha(size=20) }}<br>
-    {{ form.curso.label }} {{ form.curso(size=20) }}<br>
-    <button type="submit">Adicionar Aluno</button>
-</form>
+<div class="button-group">
+    <button type="button" class="button large-button" id="openModal">Adicionar Novo Aluno</button>
+</div>
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeModal">&times;</span>
+        <h2 id="modalTitle">Adicionar Novo Aluno</h2>
+        <form id="formAluno" method="POST" action="{{ url_for('adicionar_aluno') }}">
+            <div class="form-row">
+                <div>
+                    <label for="nome">Nome:</label>
+                    <input type="text" id="nome" name="nome" required>
+                </div>
+                <div>
+                    <label for="cpf">CPF:</label>
+                    <input type="text" id="cpf" name="cpf" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label for="usuario">Usuário:</label>
+                    <input type="text" id="usuario" name="usuario" required>
+                </div>
+                <div>
+                    <label for="senha">Senha:</label>
+                    <input type="password" id="senha" name="senha" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label for="endereco">Endereço:</label>
+                    <input type="text" id="endereco" name="endereco" required>
+                </div>
+            </div>
+            <div>
+                <label for="pesquisarCurso">Pesquisar Curso:</label>
+                <input type="text" id="pesquisarCurso" placeholder="Digite para buscar cursos">
+                <table id="resultadoCursos" class="dropdown-table">
+                    <thead>
+                        <tr>
+                            <th>Nome do Curso</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div id="cursoSelecionadoContainer">
+                    <label>Curso Selecionado:</label>
+                    <div id="cursoSelecionadoDisplay" class="curso-display">
+                        Nenhum curso selecionado.
+                    </div>
+                    <input type="hidden" id="cursoSelecionado" name="curso">
+                </div>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="button">Salvar</button>
+                <button type="button" class="button button-danger" id="cancelModal">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <h3>Lista de Alunos</h3>
 <table>
-    <tr>
-        <th>Nome</th>
-        <th>CPF</th>
-        <th>Endereço</th>
-        <th>Curso</th>
-        <th>Ações</th>
-    </tr>
-    {% for aluno in alunos %}
-    <tr>
-        <td>{{ aluno.nome }}</td>
-        <td>{{ aluno.cpf }}</td>
-        <td>{{ aluno.endereco }}</td>
-        <td>{{ aluno.curso.nome if aluno.curso else 'Não cadastrado' }}</td>
-        <td>
-            <a href="{{ url_for('editar_aluno', id=aluno.id) }}">Editar</a>
-            <form action="{{ url_for('excluir_aluno', id=aluno.id) }}" method="POST" style="display:inline;">
-                <button type="submit">Excluir</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Endereço</th>
+            <th>Curso</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for aluno in alunos %}
+        <tr>
+            <td>{{ aluno.nome }}</td>
+            <td>{{ aluno.cpf }}</td>
+            <td>{{ aluno.endereco }}</td>
+            <td>{{ aluno.curso_nome if aluno.curso_nome else 'Curso não definido' }}</td>
+            <td>
+                <button type="button" class="button edit-aluno" data-id="{{ aluno.id }}">Editar</button>
+                <form action="{{ url_for('excluir_aluno', id=aluno.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="button button-danger">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("modal");
+    const btnOpenModal = document.getElementById("openModal");
+    const btnCloseModal = document.getElementById("closeModal");
+    const btnCancelModal = document.getElementById("cancelModal");
+    const formAluno = document.getElementById("formAluno");
+
+    const pesquisarCurso = document.getElementById("pesquisarCurso");
+    const resultadoCursos = document.querySelector("#resultadoCursos tbody");
+    const cursoSelecionado = document.getElementById("cursoSelecionado");
+    const cursoSelecionadoDisplay = document.getElementById("cursoSelecionadoDisplay");
+
+    let timer;
+
+    // Abrir modal
+    btnOpenModal.addEventListener("click", () => {
+        modal.style.display = "block";
+        formAluno.reset();
+        cursoSelecionado.value = "";
+        cursoSelecionadoDisplay.textContent = "Nenhum curso selecionado.";
+        resultadoCursos.innerHTML = "";
+    });
+
+    // Fechar modal
+    [btnCloseModal, btnCancelModal].forEach(btn =>
+        btn.addEventListener("click", () => {
+            modal.style.display = "none";
+        })
+    );
+
+    // Pesquisar cursos com delay
+    pesquisarCurso.addEventListener("input", () => {
+        clearTimeout(timer);
+        const query = pesquisarCurso.value.trim();
+        if (query.length > 0) {
+            timer = setTimeout(() => buscarCursos(query), 1000);
+        } else {
+            resultadoCursos.innerHTML = "";
+        }
+    });
+
+    // Buscar cursos no servidor
+    function buscarCursos(query) {
+        fetch(`/buscar_cursos?query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(cursos => {
+                resultadoCursos.innerHTML = cursos
+                    .map(curso => `
+                        <tr>
+                            <td>${curso.nome}</td>
+                            <td>
+                                <button type="button" class="button add-curso" data-id="${curso.id}" data-nome="${curso.nome}">Adicionar</button>
+                            </td>
+                        </tr>
+                    `)
+                    .join("");
+            })
+            .catch(() => {
+                resultadoCursos.innerHTML = `
+                    <tr>
+                        <td colspan="2">Erro ao buscar cursos</td>
+                    </tr>`;
+            });
+    }
+
+    // Selecionar curso
+    resultadoCursos.addEventListener("click", event => {
+        if (event.target.classList.contains("add-curso")) {
+            const cursoId = event.target.dataset.id;
+            const cursoNome = event.target.dataset.nome;
+            cursoSelecionado.value = cursoId;
+            cursoSelecionadoDisplay.innerHTML = `
+                <span class="curso-nome">${cursoNome}</span>
+                <span class="remove-curso">x</span>
+            `;
+            resultadoCursos.innerHTML = "";
+        }
+    });
+
+    // Remover curso selecionado
+    cursoSelecionadoDisplay.addEventListener("click", event => {
+        if (event.target.classList.contains("remove-curso")) {
+            cursoSelecionado.value = "";
+            cursoSelecionadoDisplay.textContent = "Nenhum curso selecionado.";
+        }
+    });
+});
+</script>
+
+<style>
+.curso-nome {
+    font-weight: bold;
+}
+
+.remove-curso {
+    color: red;
+    cursor: pointer;
+}
+
+.remove-curso:hover {
+    text-decoration: underline;
+}
+</style>
 {% endblock %}

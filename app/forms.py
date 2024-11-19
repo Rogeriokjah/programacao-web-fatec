@@ -17,9 +17,11 @@ class ProfessorForm(FlaskForm):
     senha = PasswordField('Senha', validators=[DataRequired()])
     disciplinas = SelectMultipleField('Disciplinas', choices=[])
 
+
 class AlunoForm(FlaskForm):
-    nome = StringField('Nome', validators=[DataRequired()])
-    cpf = StringField('CPF', validators=[DataRequired(), Length(11)])
-    endereco = StringField('Endereço', validators=[DataRequired()])
-    senha = PasswordField('Senha', validators=[DataRequired()])
-    curso = SelectField('Curso', validators=[DataRequired()])
+    nome = StringField('Nome', validators=[DataRequired(), Length(max=100)])
+    cpf = StringField('CPF', validators=[DataRequired(), Length(max=11)])
+    usuario = StringField('Usuário', validators=[DataRequired(), Length(max=100)])
+    senha = PasswordField('Senha', validators=[DataRequired(), Length(max=100)])
+    endereco = StringField('Endereço', validators=[Length(max=200)])  # Adicionado aqui
+    curso = StringField('Curso')  # Já estava definido para cursos

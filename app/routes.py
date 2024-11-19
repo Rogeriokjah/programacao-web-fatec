@@ -183,6 +183,14 @@ def editar_curso(id):
     disciplinas_selecionadas = [d.id for d in curso.disciplinas]
     return render_template('editar_curso.html', curso=curso, form=form, disciplinas_selecionadas=disciplinas_selecionadas)
 
+@app.route('/buscar_cursos', methods=['GET'])
+@login_required
+def buscar_cursos():
+    query = request.args.get('query', '').strip()
+    limite = 7  # Limitar a 7 registros
+    cursos = Curso.query.filter(Curso.nome.ilike(f"%{query}%")).limit(limite).all()
+    return jsonify([{"id": curso.id, "nome": curso.nome} for curso in cursos])
+
 @app.route('/cursos/excluir/<int:id>', methods=['POST'])
 @login_required
 def excluir_curso(id):
@@ -301,25 +309,83 @@ def excluir_professores_selecionados():
         flash("Nenhum professor selecionado para exclusão.", "warning")
         return jsonify({"success": False, "message": "Nenhum curso selecionado."})
 
-
-@app.route('/alunos', methods=['GET', 'POST'])
+@app.route('/alunos', methods=['GET'])
 @login_required
-def alunos():
+def listar_alunos():
+    alunos = db.session.query(
+        Aluno.id, Aluno.nome, Aluno.cpf, Aluno.endereco, Curso.nome.label('curso_nome')
+    ).outerjoin(Curso, Aluno.curso_id == Curso.id).all()
+    print("Alunos encontrados:", alunos)  # Depuração para verificar os dados retornados
+    return render_template('alunos.html', alunos=alunos)
+
+@app.route('/adicionar_aluno', methods=['POST'])
+@login_required
+def adicionar_aluno():
     form = AlunoForm()
-    form.curso.choices = [(c.id, c.nome) for c in Curso.query.all()]
-    if form.validate_on_submit():
+
+    # Debug para ver os dados recebidos
+    print("Dados recebidos no formulário:", request.form)
+
+    # Validações individuais
+    erros = []
+    if not form.nome.data:
+        erros.append("O campo Nome é obrigatório.")
+    if not form.cpf.data:
+        erros.append("O campo CPF é obrigatório.")
+    if not form.usuario.data:
+        erros.append("O campo Usuário é obrigatório.")
+    if not form.senha.data:
+        erros.append("O campo Senha é obrigatório.")
+
+    if erros:
+        for erro in erros:
+            flash(erro, "danger")
+        return redirect(url_for('listar_alunos'))
+
+    # Dados válidos - Criar novo aluno
+    try:
         novo_aluno = Aluno(
             nome=form.nome.data,
             cpf=form.cpf.data,
-            endereco=form.endereco.data,
+            endereco=form.endereco.data or None,  # Permitir `NULL`
+            usuario=form.usuario.data,
             senha=form.senha.data,
-            curso_id=form.curso.data
+            curso_id=form.curso.data or None  # Permitir `NULL`
         )
         db.session.add(novo_aluno)
         db.session.commit()
         flash("Aluno adicionado com sucesso!", "success")
-    alunos = Aluno.query.all()
-    return render_template('alunos.html', alunos=alunos, form=form, active_page='alunos')
+    except Exception as e:
+        db.session.rollback()
+        print(f"Erro ao salvar o aluno: {e}")
+        flash(f"Erro ao salvar o aluno: {e}", "danger")
+
+    return redirect(url_for('listar_alunos'))
+
+app.route('/alunos/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+def editar_aluno(id):
+    aluno = Aluno.query.get_or_404(id)
+    form = AlunoForm(obj=disciplina)
+    if form.validate_on_submit():
+        aluno.nome=form.nome.data,
+        aluno.cpf=form.cpf.data,
+        aluno.endereco=form.endereco.data,
+        aluno.senha=form.senha.data,
+        aluno.curso_id=form.curso.data
+        db.session.commit()
+        flash("Aluno atualizado com sucesso!", "success")
+        return redirect(url_for('listar_alunos'))
+    return render_template('alunos.html', form=form, aluno=aluno)
+
+@app.route('/alunos/excluir/<int:id>', methods=['POST'])
+@login_required
+def excluir_aluno(id):
+    aluno = Aluno.query.get_or_404(id)
+    db.session.delete(aluno)
+    db.session.commit()
+    flash("Aluno excluído com sucesso!", "success")
+    return redirect(url_for('listar_alunos'))
 
 @app.route('/buscar_disciplinas', methods=['GET'])
 @login_required
