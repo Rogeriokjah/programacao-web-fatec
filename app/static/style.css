@@ -103,21 +103,35 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
-    table-layout: flex;
+    table-layout: fixed;
 }
 
 table, th, td {
     border: 1px solid #ddd;
 }
 
+
 th, td {
+    white-space: normal;
     padding: 10px;
-    text-align: left;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    justify-items: center;
+}
+
+tr {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    word-wrap: break-word; /* Força quebra em palavras muito longas */
 }
 
 th {
     color: white;
     background-color: #333;
+    flex-wrap: wrap;
 }
 
 tbody tr:nth-child(even) {
@@ -295,7 +309,17 @@ button:disabled {
     justify-content: space-between;
     align-items: center;
 }
-
+.inner-table td,
+.inner-table .disciplina-nome,
+.inner-table .disciplina-carga {
+    white-space: normal; /* Permite quebras de linha */
+    overflow-wrap: break-word; /* Força quebra de palavras longas */
+    word-wrap: break-word; /* Compatibilidade com navegadores antigos */
+    word-break: break-word;
+    text-align: left; /* Alinha à esquerda para evitar truncamentos visuais */
+    padding: 5px; /* Adiciona espaçamento interno */
+    align-items: center;
+}
 .inner-table td {
     border: none; /* Remove as bordas */
     padding: 2px 5px;

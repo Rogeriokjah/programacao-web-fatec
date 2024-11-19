@@ -443,7 +443,7 @@ def buscar_disciplinas():
     ).limit(limite).all()
 
     # Retorna as disciplinas no formato JSON
-    return jsonify([{'id': d.id, 'nome': d.nome} for d in disciplinas])
+    return jsonify([{'id': d.id, 'nome': d.nome, 'carga_horaria': d.carga_horaria} for d in disciplinas])
 
 if __name__ == "__main__":
     app.run(debug=True)

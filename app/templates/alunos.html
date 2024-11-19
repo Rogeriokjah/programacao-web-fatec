@@ -177,9 +177,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.target.classList.contains("remove-curso")) {
             cursoSelecionado.value = "";
             cursoSelecionadoDisplay.textContent = "Nenhum curso selecionado.";
+            
+            // Atualizar lista de cursos disponíveis
+            const query = pesquisarCurso.value.trim();
+            if (query.length > 0) {
+                buscarCursos(query);
+            }
         }
     });
-
     // Abrir modal para edição de aluno
     document.querySelectorAll(".edit-aluno").forEach(button => {
         button.addEventListener("click", event => {
