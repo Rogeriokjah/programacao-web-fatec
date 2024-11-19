@@ -362,21 +362,34 @@ def adicionar_aluno():
 
     return redirect(url_for('listar_alunos'))
 
-app.route('/alunos/editar/<int:id>', methods=['GET', 'POST'])
+@app.route('/editar_aluno/<int:id>', methods=['POST'])
 @login_required
 def editar_aluno(id):
     aluno = Aluno.query.get_or_404(id)
-    form = AlunoForm(obj=disciplina)
-    if form.validate_on_submit():
-        aluno.nome=form.nome.data,
-        aluno.cpf=form.cpf.data,
-        aluno.endereco=form.endereco.data,
-        aluno.senha=form.senha.data,
-        aluno.curso_id=form.curso.data
+    try:
+        # Captura os dados do formulário
+        nome = request.form.get('nome')
+        cpf = request.form.get('cpf')
+        usuario = request.form.get('usuario')
+        senha = request.form.get('senha')
+        endereco = request.form.get('endereco')
+        curso_id = request.form.get('curso')
+
+        # Atualiza os campos do aluno
+        aluno.nome = nome
+        aluno.cpf = cpf
+        aluno.usuario = usuario
+        aluno.senha = senha
+        aluno.endereco = endereco
+        aluno.curso_id = curso_id if curso_id else None
+
         db.session.commit()
         flash("Aluno atualizado com sucesso!", "success")
-        return redirect(url_for('listar_alunos'))
-    return render_template('alunos.html', form=form, aluno=aluno)
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao atualizar aluno: {e}", "danger")
+
+    return redirect(url_for('listar_alunos'))
 
 @app.route('/alunos/excluir/<int:id>', methods=['POST'])
 @login_required
@@ -386,6 +399,32 @@ def excluir_aluno(id):
     db.session.commit()
     flash("Aluno excluído com sucesso!", "success")
     return redirect(url_for('listar_alunos'))
+
+@app.route('/buscar_aluno', methods=['GET'])
+@login_required
+def buscar_aluno():
+    aluno_id = request.args.get('id', type=int)
+    if not aluno_id:
+        return jsonify({"error": "ID do aluno não fornecido"}), 400
+
+    aluno = db.session.query(
+        Aluno.id, Aluno.nome, Aluno.cpf, Aluno.endereco, Aluno.senha, Aluno.usuario, Aluno.curso_id, Curso.nome.label('curso_nome')
+    ).outerjoin(Curso, Aluno.curso_id == Curso.id).filter(Aluno.id == aluno_id).first()
+
+    if not aluno:
+        return jsonify({"error": "Aluno não encontrado"}), 404
+
+    return jsonify({
+        "id": aluno.id,
+        "nome": aluno.nome,
+        "cpf": aluno.cpf,
+        "endereco": aluno.endereco,
+        "senha": aluno.senha,
+        "usuario": aluno.usuario,
+        "curso_id": aluno.curso_id,
+        "curso_nome": aluno.curso_nome
+    })
+
 
 @app.route('/buscar_disciplinas', methods=['GET'])
 @login_required

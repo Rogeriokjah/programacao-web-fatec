@@ -9,7 +9,7 @@
     <div class="modal-content">
         <span class="close" id="closeModal">&times;</span>
         <h2 id="modalTitle">Adicionar Novo Aluno</h2>
-        <form id="formAluno" method="POST" action="{{ url_for('adicionar_aluno') }}">
+        <form id="formAluno" method="POST">
             <div class="form-row">
                 <div>
                     <label for="nome">Nome:</label>
@@ -33,7 +33,7 @@
             <div class="form-row">
                 <div>
                     <label for="endereco">Endereço:</label>
-                    <input type="text" id="endereco" name="endereco" required>
+                    <input type="text" id="endereco" name="endereco">
                 </div>
             </div>
             <div>
@@ -100,7 +100,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCloseModal = document.getElementById("closeModal");
     const btnCancelModal = document.getElementById("cancelModal");
     const formAluno = document.getElementById("formAluno");
-
     const pesquisarCurso = document.getElementById("pesquisarCurso");
     const resultadoCursos = document.querySelector("#resultadoCursos tbody");
     const cursoSelecionado = document.getElementById("cursoSelecionado");
@@ -108,13 +107,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let timer;
 
-    // Abrir modal
+    // Abrir modal para adicionar aluno
     btnOpenModal.addEventListener("click", () => {
         modal.style.display = "block";
         formAluno.reset();
         cursoSelecionado.value = "";
-        cursoSelecionadoDisplay.textContent = "Nenhum curso selecionado.";
-        resultadoCursos.innerHTML = "";
+        cursoSelecionadoDisplay.innerHTML = "Nenhum curso selecionado.";
+        formAluno.action = "{{ url_for('adicionar_aluno') }}";
+        document.getElementById("modalTitle").textContent = "Adicionar Novo Aluno";
     });
 
     // Fechar modal
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
         })
     );
 
-    // Pesquisar cursos com delay
+    // Pesquisar cursos
     pesquisarCurso.addEventListener("input", () => {
         clearTimeout(timer);
         const query = pesquisarCurso.value.trim();
@@ -135,7 +135,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Buscar cursos no servidor
     function buscarCursos(query) {
         fetch(`/buscar_cursos?query=${encodeURIComponent(query)}`)
             .then(response => response.json())
@@ -173,16 +172,45 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Remover curso selecionado e buscar novamente
+    // Remover curso selecionado
     cursoSelecionadoDisplay.addEventListener("click", event => {
         if (event.target.classList.contains("remove-curso")) {
             cursoSelecionado.value = "";
             cursoSelecionadoDisplay.textContent = "Nenhum curso selecionado.";
-            const query = pesquisarCurso.value.trim();
-            if (query.length > 0) {
-                buscarCursos(query); // Buscar cursos novamente com o texto no campo de pesquisa
-            }
         }
+    });
+
+    // Abrir modal para edição de aluno
+    document.querySelectorAll(".edit-aluno").forEach(button => {
+        button.addEventListener("click", event => {
+            const id = button.dataset.id;
+            fetch(`/buscar_aluno?id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert("Erro ao buscar aluno.");
+                        return;
+                    }
+                    modal.style.display = "block";
+                    document.getElementById("nome").value = data.nome;
+                    document.getElementById("cpf").value = data.cpf;
+                    document.getElementById("usuario").value = data.usuario;
+                    document.getElementById("senha").value = data.senha;
+                    document.getElementById("endereco").value = data.endereco || "";
+                    document.getElementById("cursoSelecionado").value = data.curso_id || "";
+                    if (data.curso_nome) {
+                        cursoSelecionadoDisplay.innerHTML = `
+                            <span class="curso-nome">${data.curso_nome}</span>
+                            <span class="remove-curso">x</span>
+                        `;
+                    } else {
+                        cursoSelecionadoDisplay.textContent = "Nenhum curso selecionado.";
+                    }
+                    formAluno.action = `/editar_aluno/${id}`;
+                    document.getElementById("modalTitle").textContent = "Editar Aluno";
+                })
+                .catch(() => alert("Erro ao buscar aluno."));
+        });
     });
 });
 </script>
