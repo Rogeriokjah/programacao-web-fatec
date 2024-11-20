@@ -5,6 +5,7 @@ from models import db, Disciplina, Curso, Professor, Aluno, Usuario, curso_disci
 from forms import DisciplinaForm, CursoForm, ProfessorForm, AlunoForm
 from config import Config
 from sqlalchemy import text
+import logging
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -440,6 +441,39 @@ def excluir_aluno(id):
     flash("Aluno excluído com sucesso!", "success")
     return redirect(url_for('listar_alunos'))
 
+@app.route('/alunos/excluir_selecionados', methods=['POST'])
+@login_required
+def excluir_alunos_selecionados():
+    data = request.get_json()
+    ids = data.get('alunos_ids', [])
+
+    # Log para depuração
+    app.logger.info(f"IDs recebidos para exclusão: {ids}")
+
+    if ids:
+        try:
+            # Tentar excluir os alunos com os IDs fornecidos
+            deleted = Aluno.query.filter(Aluno.id.in_(ids)).delete(synchronize_session=False)
+            db.session.commit()
+
+            # Log de sucesso
+            app.logger.info(f"Registros excluídos com sucesso: {deleted}")
+
+            flash(f"{len(ids)} aluno(s) excluído(s) com sucesso!", "success")
+            return jsonify({"success": True})
+        except Exception as e:
+            # Log em caso de erro
+            app.logger.error(f"Erro ao excluir alunos: {str(e)}")
+            db.session.rollback()
+            flash(f"Erro ao excluir os alunos: {str(e)}", "danger")
+            return jsonify({"success": False, "error": str(e)})
+    else:
+        # Log caso nenhum ID seja enviado
+        app.logger.warning("Nenhum aluno selecionado para exclusão.")
+        flash("Nenhum aluno selecionado para exclusão.", "warning")
+        return jsonify({"success": False, "message": "Nenhum aluno selecionado."})
+
+
 @app.route('/buscar_aluno', methods=['GET'])
 @login_required
 def buscar_aluno():
@@ -486,4 +520,5 @@ def buscar_disciplinas():
     return jsonify([{'id': d.id, 'nome': d.nome, 'carga_horaria': d.carga_horaria} for d in disciplinas])
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     app.run(debug=True)
