@@ -6,6 +6,12 @@
     <button type="button" class="button large-button" id="openModal">Adicionar Novo Curso</button>
     <button type="button" class="button button-danger large-button" id="deleteSelected" disabled>Excluir Selecionados</button>
 </div>
+<br>
+<div>
+    <label for="pesquisar_cursos">Pesquisar Cursos</label>
+    <input type="text" id="pesquisar_cursos" placeholder="Digite para buscar cursos">
+</div>
+<br>
 
 <h2>Lista de Cursos</h2>
 
@@ -19,7 +25,7 @@
             <th style="width: 13%;">Ações</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="cursosTableBody">
         {% for curso in cursos %}
         <tr>
             <td><input type="checkbox" class="selectItem" data-id="{{ curso.id }}"></td>
@@ -119,8 +125,90 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnOpenModal = document.getElementById("openModal");
     const selectAllCheckbox = document.getElementById("selectAll");
     const deleteSelectedButton = document.getElementById("deleteSelected");
+    const searchCursosInput = document.getElementById("pesquisar_cursos");
+    const cursosTableBody = document.getElementById("cursosTableBody");
+    let timer;
 
     let cursoId = null;
+
+    searchCursosInput.addEventListener("input", () => {
+        clearTimeout(timer);
+        const query = searchCursosInput.value.trim();
+
+        if (query.length > 0) {
+            timer = setTimeout(() => buscarCursos(query), 500);
+        } else {
+            location.reload(); // Recarregar para exibir lista completa
+        }
+    });
+
+    function buscarCursos(query) {
+        fetch(`/buscar_cursos?query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(cursos => {
+                cursosTableBody.innerHTML = cursos.map(curso => `
+                    <tr>
+                        <td><input type="checkbox" class="selectItem" data-id="${curso.id}"></td>
+                        <td>${curso.nome}</td>
+                        <td>
+                            <div class="disciplinas-container">
+                                <table class="inner-table">
+                                    <tbody>
+                                        ${curso.disciplinas.map(d => `
+                                            <tr>
+                                                <td class="disciplina-nome">${d.nome}</td>
+                                                <td class="disciplina-separador"><div class="hifen">-</div></td>
+                                                <td class="disciplina-carga">${d.carga_horaria} horas</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                        <td>${curso.carga_horaria_total || "N/A"}</td>
+                        <td>
+                            <button type="button" class="button edit-curso" data-id="${curso.id}">Editar</button>
+                            <form action="/cursos/excluir/${curso.id}" method="POST" style="display:inline;">
+                                <button type="submit" class="button button-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                `).join('');
+                addEventListenersToEditButtons(); // Adicionar listeners para botões de edição novamente
+            })
+            .catch(() => alert("Erro ao buscar cursos."));
+    }
+
+    // Adiciona os listeners novamente para os botões de editar após re-renderizar
+    function addEventListenersToEditButtons() {
+        document.querySelectorAll(".edit-curso").forEach(button => {
+            button.addEventListener("click", () => {
+                const cursoId = button.dataset.id;
+                fetch(`/buscar_curso?id=${cursoId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        modal.style.display = "block";
+                        modalTitle.textContent = "Editar Curso";
+                        formCurso.action = `/cursos/editar/${cursoId}`;
+                        document.getElementById("nome_curso").value = data.nome;
+
+                        disciplinasSelecionadas.innerHTML = data.disciplinas.map(d => `
+                            <tr data-id="${d.id}">
+                                <td>${d.nome}</td>
+                                <td>${d.carga_horaria}</td>
+                                <td>
+                                    <button type="button" class="button button-danger remove-disciplina">Remover</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                        updateSelectedIds();
+                    })
+                    .catch(() => alert("Erro ao buscar informações do curso."));
+            });
+        });
+    }
+
+    addEventListenersToEditButtons();
 
     btnOpenModal.onclick = () => {
         modal.style.display = "block";

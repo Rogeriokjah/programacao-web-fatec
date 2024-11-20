@@ -202,10 +202,18 @@ def editar_curso(id):
 @login_required
 def buscar_cursos():
     query = request.args.get('query', '').strip()
-    limite = 7  # Limitar a 7 registros
+    limite = 10  # Limite de resultados
     cursos = Curso.query.filter(Curso.nome.ilike(f"%{query}%")).limit(limite).all()
-    return jsonify([{"id": curso.id, "nome": curso.nome} for curso in cursos])
-
+    return jsonify([
+        {
+            "id": curso.id,
+            "nome": curso.nome,
+            "disciplinas": [{"nome": d.nome, "carga_horaria": d.carga_horaria} for d in curso.disciplinas],
+            "carga_horaria_total": curso.carga_horaria_total
+        }
+        for curso in cursos
+    ])
+    
 @app.route('/buscar_curso', methods=['GET'])
 @login_required
 def buscar_curso():
