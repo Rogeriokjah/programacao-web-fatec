@@ -9,6 +9,12 @@
     <button type="button" class="button large-button" id="openModal">Adicionar Nova Disciplina</button>
     <button type="button" class="button button-danger large-button" id="deleteSelected" disabled>Excluir Selecionadas</button>
 </div>
+<br>
+<div>
+    <label for="pesquisar_disciplinas">Pesquisar Disciplinas</label>
+    <input type="text" id="pesquisar_disciplinas" placeholder="Digite para buscar disciplinas">
+</div>
+<br>
 
 <h2>Lista de Disciplinas</h2>
 
@@ -73,45 +79,56 @@
         const formDisciplina = document.getElementById("formAddDisciplina");
         const deleteSelectedButton = document.getElementById("deleteSelected");
         const selectAllCheckbox = document.getElementById("selectAll");
-
         const modalTitle = document.getElementById("modalTitle");
-    
-        // Função para abrir o modal
-        if (btnDisciplina) {
-            btnDisciplina.onclick = function () {
-                modalDisciplina.style.display = "block";
-            };
-        }
-    
-        // Função para fechar o modal
-        if (spanDisciplina) {
-            spanDisciplina.onclick = function () {
-                fecharModalDisciplina();
-            };
-        }
-    
-        if (cancelBtnDisciplina) {
-            cancelBtnDisciplina.onclick = function () {
-                fecharModalDisciplina();
-            };
-        }
-    
-        function fecharModalDisciplina() {
-            modalDisciplina.style.display = "none";
-            if (formDisciplina) formDisciplina.reset(); // Limpa o formulário ao fechar o modal
-        }
-    
-        // Fecha o modal ao clicar fora dele
-        window.onclick = function (event) {
-            if (event.target == modalDisciplina) {
-                fecharModalDisciplina();
-            }
-        };
+        const pesquisarDisciplinasInput = document.getElementById("pesquisar_disciplinas");
+        const tabelaDisciplinasBody = document.querySelector("table tbody");
+        let timer;
 
-         // Abrir modal para edição
-         document.querySelectorAll(".edit-disciplina").forEach(button => {
+
+
+     // Função para buscar disciplinas no servidor
+     function buscarDisciplinas(query) {
+        fetch(`/buscar_disciplinas?query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(disciplinas => {
+                atualizarTabela(disciplinas);
+            })
+            .catch(() => {
+                tabelaDisciplinasBody.innerHTML = `
+                    <tr>
+                        <td colspan="4">Erro ao buscar disciplinas</td>
+                    </tr>`;
+            });
+    }
+
+    // Atualizar tabela com os resultados
+    function atualizarTabela(disciplinas) {
+        if (disciplinas.length === 0) {
+            tabelaDisciplinasBody.innerHTML = `
+                <tr>
+                    <td colspan="4">Nenhuma disciplina encontrada</td>
+                </tr>`;
+            return;
+        }
+    
+        tabelaDisciplinasBody.innerHTML = disciplinas.map(d => `
+            <tr>
+                <td><input type="checkbox" class="selectItem" data-id="${d.id}"></td>
+                <td>${d.nome}</td>
+                <td>${d.carga_horaria} horas</td>
+                <td>
+                    <button type="button" class="button edit-disciplina" data-id="${d.id}">Editar</button>
+                    <form action="/disciplinas/excluir/${d.id}" method="POST" style="display:inline;">
+                        <button type="submit" class="button button-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+        `).join("");
+    
+        // Reaplica o event listener para os botões de editar
+        document.querySelectorAll(".edit-disciplina").forEach(button => {
             button.addEventListener("click", event => {
-                disciplinaid = button.dataset.id;
+                const disciplinaid = button.dataset.id;
                 fetch(`/buscar_disciplina?id=${disciplinaid}`)
                     .then(response => response.json())
                     .then(data => {
@@ -124,70 +141,129 @@
                         formDisciplina.action = `/disciplinas/editar/${disciplinaid}`;
                         document.getElementById("nome").value = data.nome;
                         document.getElementById("carga_horaria").value = data.carga_horaria;
-                        })
+                    })
                     .catch(() => alert("Erro ao buscar disciplina."));
             });
         });
-
+    }
     
-        // Lógica de seleção de disciplinas
-        if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener("change", function () {
-                document.querySelectorAll(".selectItem").forEach((item) => {
-                    item.checked = selectAllCheckbox.checked;
-                });
-                toggleDeleteButton();
-            });
-        }
-    
-        document.querySelectorAll(".selectItem").forEach((item) => {
-            item.addEventListener("change", toggleDeleteButton);
-        });
-    
-        function toggleDeleteButton() {
-            const selectedItems = document.querySelectorAll(
-                ".selectItem:checked"
-            );
-            if (deleteSelectedButton) {
-                deleteSelectedButton.disabled = selectedItems.length === 0;
-            }
-        }
-    
-        // Lógica para exclusão em massa
-        if (deleteSelectedButton) {
-            deleteSelectedButton.addEventListener("click", function (event) {
-                event.preventDefault(); // Evita o comportamento padrão do submit
-                const selectedIds = Array.from(
-                    document.querySelectorAll(".selectItem:checked")
-                ).map((item) => item.dataset.id);
-    
-                if (selectedIds.length > 0) {
-                    fetch("{{ url_for('excluir_disciplinas_selecionadas') }}", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ disciplina_ids: selectedIds }),
-                    })
-                        .then((response) => {
-                            if (response.ok) {
-                                window.location.reload();
-                            } else {
-                                alert("Erro ao excluir disciplinas.");
-                            }
-                        })
-                        .finally(() => {
-                            document
-                                .querySelectorAll(".selectItem")
-                                .forEach((item) => (item.checked = false));
-                            if (selectAllCheckbox)
-                                selectAllCheckbox.checked = false;
-                            toggleDeleteButton();
-                        });
-                }
-            });
-        }
+    // Adicionar evento de input com delay
+    pesquisarDisciplinasInput.addEventListener("input", () => {
+        clearTimeout(timer);
+        const query = pesquisarDisciplinasInput.value.trim();
+        timer = setTimeout(() => buscarDisciplinas(query), 500);
     });
+
+    // Função para abrir o modal
+    if (btnDisciplina) {
+        btnDisciplina.onclick = function () {
+            modalDisciplina.style.display = "block";
+        };
+    }
+
+    // Função para fechar o modal
+    if (spanDisciplina) {
+        spanDisciplina.onclick = function () {
+            fecharModalDisciplina();
+        };
+    }
+
+    if (cancelBtnDisciplina) {
+        cancelBtnDisciplina.onclick = function () {
+            fecharModalDisciplina();
+        };
+    }
+
+    function fecharModalDisciplina() {
+        modalDisciplina.style.display = "none";
+        if (formDisciplina) formDisciplina.reset(); // Limpa o formulário ao fechar o modal
+    }
+
+    // Fecha o modal ao clicar fora dele
+    window.onclick = function (event) {
+        if (event.target == modalDisciplina) {
+            fecharModalDisciplina();
+        }
+    };
+     // Abrir modal para edição
+    document.querySelectorAll(".edit-disciplina").forEach(button => {
+       button.addEventListener("click", event => {
+           disciplinaid = button.dataset.id;
+           fetch(`/buscar_disciplina?id=${disciplinaid}`)
+               .then(response => response.json())
+               .then(data => {
+                   if (data.error) {
+                       alert("Erro ao buscar disciplina.");
+                       return;
+                   }
+                   modal.style.display = "block";
+                   modalTitle.textContent = "Editar Disciplina";
+                   formDisciplina.action = `/disciplinas/editar/${disciplinaid}`;
+                   document.getElementById("nome").value = data.nome;
+                   document.getElementById("carga_horaria").value = data.carga_horaria;
+                   })
+               .catch(() => alert("Erro ao buscar disciplina."));
+       });
+    });
+
+    // Lógica de seleção de disciplinas
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener("change", function () {
+            document.querySelectorAll(".selectItem").forEach((item) => {
+                item.checked = selectAllCheckbox.checked;
+            });
+            toggleDeleteButton();
+        });
+    }
+
+    document.querySelectorAll(".selectItem").forEach((item) => {
+        item.addEventListener("change", toggleDeleteButton);
+    });
+
+    function toggleDeleteButton() {
+        const selectedItems = document.querySelectorAll(
+            ".selectItem:checked"
+        );
+        if (deleteSelectedButton) {
+            deleteSelectedButton.disabled = selectedItems.length === 0;
+        }
+    }
+
+    // Lógica para exclusão em massa
+    if (deleteSelectedButton) {
+        deleteSelectedButton.addEventListener("click", function (event) {
+            event.preventDefault(); // Evita o comportamento padrão do submit
+            const selectedIds = Array.from(
+                document.querySelectorAll(".selectItem:checked")
+            ).map((item) => item.dataset.id);
+
+            if (selectedIds.length > 0) {
+                fetch("{{ url_for('excluir_disciplinas_selecionadas') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ disciplina_ids: selectedIds }),
+                })
+                    .then((response) => {
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            alert("Erro ao excluir disciplinas.");
+                        }
+                    })
+                    .finally(() => {
+                        document
+                            .querySelectorAll(".selectItem")
+                            .forEach((item) => (item.checked = false));
+                        if (selectAllCheckbox)
+                            selectAllCheckbox.checked = false;
+                        toggleDeleteButton();
+                    });
+            }
+        });
+    }
+});
     
 </script>
 {% endblock %}
