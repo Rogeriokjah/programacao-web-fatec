@@ -146,6 +146,8 @@
         const closeModal = document.getElementById("closeModal");
         const cancelModal = document.getElementById("cancelModal");
         const btnOpenModal = document.getElementById("openModal");
+        const selectAllCheckbox = document.getElementById("selectAll");
+        const deleteSelectedButton = document.getElementById("deleteSelected");
         
         let professorId = null; // Armazena o ID do professor em edição
     
@@ -274,6 +276,41 @@
                     .catch(() => alert("Erro ao buscar professor."));
             });
         });
+
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener("change", function () {
+                document.querySelectorAll(".selectItem").forEach((item) => {
+                    item.checked = selectAllCheckbox.checked;
+                });
+                toggleDeleteButton();
+            });
+        }
+    
+        document.querySelectorAll(".selectItem").forEach((item) => {
+            item.addEventListener("change", toggleDeleteButton);
+        });
+    
+        function toggleDeleteButton() {
+            const selectedItems = document.querySelectorAll(
+                ".selectItem:checked"
+            );
+            if (deleteSelectedButton) {
+                deleteSelectedButton.disabled = selectedItems.length === 0;
+            }
+        }
+        deleteSelectedButton.addEventListener("click", () => {
+            const selectedIds = Array.from(document.querySelectorAll(".selectItem:checked")).map(item => item.dataset.id);
+            if (selectedIds.length > 0) {
+                fetch("{{ url_for('excluir_professores_selecionados') }}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ professores_ids: selectedIds })
+                })
+                    .then(response => response.ok ? window.location.reload() : alert("Erro ao excluir professores"))
+                    .catch(() => alert("Erro na exclusão"));
+            }
     });
+});
 </script>
 {% endblock %}
