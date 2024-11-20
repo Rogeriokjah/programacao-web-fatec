@@ -9,7 +9,15 @@ body, html {
     display: flex;
     height: 100vh;
 }
-
+welcome-message {
+    flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-items: center;
+text-align: center;
+max-width: 100%;
+}
 .sidebar {
     position: fixed; /* Fixa o menu na posição */
     top: 0;

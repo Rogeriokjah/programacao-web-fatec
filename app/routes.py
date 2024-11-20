@@ -162,26 +162,40 @@ def adicionar_curso():
 @login_required
 def editar_curso(id):
     curso = Curso.query.get_or_404(id)
-    form = CursoForm(obj=curso)
 
     if request.method == 'POST':
-        # Atualiza o nome do curso
-        curso.nome = form.nome.data
+        # Atualizar o nome do curso
+        curso.nome = request.form.get('nome')
 
-        # Remove todas as disciplinas relacionadas ao curso
-        db.session.execute(curso_disciplina.delete().where(curso_disciplina.c.curso_id == id))
-        
-        # Adiciona as disciplinas selecionadas novamente
-        disciplinas_ids = request.form.getlist('disciplinas')
-        for disciplina_id in disciplinas_ids:
-            db.session.execute(curso_disciplina.insert().values(curso_id=id, disciplina_id=int(disciplina_id)))
-        
-        db.session.commit()
-        flash("Curso atualizado com sucesso!", "success")
+        # Atualizar as disciplinas associadas
+        disciplinas_ids = request.form.get('disciplinas', '')
+        if disciplinas_ids:
+            # Converter IDs para inteiros
+            disciplinas_ids = [int(d_id) for d_id in disciplinas_ids.split(",") if d_id]
+            # Consultar as disciplinas selecionadas
+            disciplinas = Disciplina.query.filter(Disciplina.id.in_(disciplinas_ids)).all()
+            curso.disciplinas = disciplinas
+        else:
+            curso.disciplinas = []  # Remove todas as associações
+
+        try:
+            db.session.commit()
+            flash("Curso atualizado com sucesso!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erro ao atualizar curso: {str(e)}", "danger")
+
         return redirect(url_for('listar_cursos'))
 
-    disciplinas_selecionadas = [d.id for d in curso.disciplinas]
-    return render_template('editar_curso.html', curso=curso, form=form, disciplinas_selecionadas=disciplinas_selecionadas)
+    # Retornar os dados em JSON para preencher o modal
+    if request.method == 'GET':
+        disciplinas = [{"id": d.id, "nome": d.nome, "carga_horaria": d.carga_horaria} for d in curso.disciplinas]
+        return jsonify({
+            "id": curso.id,
+            "nome": curso.nome,
+            "disciplinas": disciplinas
+        })
+
 
 @app.route('/buscar_cursos', methods=['GET'])
 @login_required
@@ -190,6 +204,21 @@ def buscar_cursos():
     limite = 7  # Limitar a 7 registros
     cursos = Curso.query.filter(Curso.nome.ilike(f"%{query}%")).limit(limite).all()
     return jsonify([{"id": curso.id, "nome": curso.nome} for curso in cursos])
+
+@app.route('/buscar_curso', methods=['GET'])
+@login_required
+def buscar_curso():
+    curso_id = request.args.get('id', type=int)
+    curso = Curso.query.get_or_404(curso_id)
+    disciplinas = [{"id": d.id, "nome": d.nome, "carga_horaria": d.carga_horaria} for d in curso.disciplinas]
+    
+    return jsonify({
+        "id": curso.id,
+        "nome": curso.nome,
+        "disciplinas": disciplinas
+    })
+    
+    
 
 @app.route('/cursos/excluir/<int:id>', methods=['POST'])
 @login_required
