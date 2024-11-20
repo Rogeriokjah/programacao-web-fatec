@@ -524,6 +524,24 @@ def buscar_aluno():
         "curso_nome": aluno.curso_nome
     })
 
+@app.route('/buscar_alunos', methods=['GET'])
+@login_required
+def buscar_alunos():
+    query = request.args.get('query', '').strip()
+    limite = 10  # Limite de 10 resultados
+    alunos = db.session.query(
+        Aluno.id, Aluno.nome, Aluno.cpf, Aluno.endereco, Curso.nome.label('curso_nome')
+    ).outerjoin(Curso, Aluno.curso_id == Curso.id)\
+     .filter(Aluno.nome.ilike(f"%{query}%")).limit(limite).all()
+
+    return jsonify([{
+        "id": aluno.id,
+        "nome": aluno.nome,
+        "cpf": aluno.cpf,
+        "endereco": aluno.endereco,
+        "curso_nome": aluno.curso_nome
+    } for aluno in alunos])
+
 
 @app.route('/buscar_disciplinas', methods=['GET'])
 @login_required

@@ -5,6 +5,12 @@
     <button type="button" class="button large-button" id="openModal">Adicionar Novo Aluno</button>
     <button type="button" class="button button-danger large-button" id="deleteSelected" disabled>Excluir Selecionados</button>
 </div>
+<br>
+<div>
+    <label for="pesquisar_alunos">Pesquisar Alunos:</label>
+    <input type="text" id="pesquisar_alunos" placeholder="Digite para buscar alunos">
+</div>
+<br>
 
 <div id="modal" class="modal">
     <div class="modal-content">
@@ -77,7 +83,7 @@
             <th style="width: 15%;">Ações</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="alunosTableBody">
         {% for aluno in alunos %}
         <tr>
             <td><input type="checkbox" class="selectItem" data-id="{{ aluno.id }}"></td>
@@ -109,9 +115,75 @@ document.addEventListener("DOMContentLoaded", () => {
     const cursoSelecionadoDisplay = document.getElementById("cursoSelecionadoDisplay");
     const selectAllCheckbox = document.getElementById("selectAll");
     const deleteSelectedButton = document.getElementById("deleteSelected");
+    const alunosTableBody = document.getElementById("alunosTableBody");
+    const pesquisarAlunosInput = document.getElementById("pesquisar_alunos");
+    let searchTimer;
 
     let timer;
+// Pesquisar alunos
+pesquisarAlunosInput.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    const query = pesquisarAlunosInput.value.trim();
+    searchTimer = setTimeout(() => buscarAlunos(query), 500);
+});
 
+function buscarAlunos(query) {
+    fetch(`/buscar_alunos?query=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(alunos => {
+            // Atualizar a tabela de alunos com os resultados da pesquisa
+            alunosTableBody.innerHTML = alunos.map(aluno => `
+                <tr>
+                    <td><input type="checkbox" class="selectItem" data-id="${aluno.id}"></td>
+                    <td>${aluno.nome}</td>
+                    <td>${aluno.cpf}</td>
+                    <td>${aluno.endereco || 'Sem endereço'}</td>
+                    <td>${aluno.curso_nome || 'Curso não definido'}</td>
+                    <td>
+                        <button type="button" class="button edit-aluno" data-id="${aluno.id}">Editar</button>
+                        <form action="/alunos/excluir/${aluno.id}" method="POST" style="display:inline;">
+                            <button type="submit" class="button button-danger">Excluir</button>
+                        </form>
+                    </td>
+                </tr>`).join("");
+
+            // Reaplicar os listeners de edição e exclusão após a re-renderização
+            applyListenersToAlunos();
+        })
+        .catch(() => alert("Erro ao buscar alunos."));
+}
+
+// Aplicar listeners novamente para botões na tabela
+function applyListenersToAlunos() {
+    document.querySelectorAll(".edit-aluno").forEach(button => {
+        button.addEventListener("click", () => {
+            const alunoId = button.dataset.id;
+            fetch(`/buscar_aluno?id=${alunoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert("Erro ao buscar aluno.");
+                        return;
+                    }
+                    modal.style.display = "block";
+                    formAluno.action = `/editar_aluno/${alunoId}`;
+                    document.getElementById("nome").value = data.nome;
+                    document.getElementById("cpf").value = data.cpf;
+                    document.getElementById("usuario").value = data.usuario;
+                    document.getElementById("senha").value = data.senha;
+                    document.getElementById("endereco").value = data.endereco || "";
+                    document.getElementById("cursoSelecionado").value = data.curso_id || "";
+                    cursoSelecionadoDisplay.innerHTML = data.curso_nome
+                        ? `<span class="curso-nome">${data.curso_nome}</span><span class="remove-curso">x</span>`
+                        : "Nenhum curso selecionado.";
+                })
+                .catch(() => alert("Erro ao buscar aluno."));
+        });
+    });
+}
+
+// Reaplicar o listener ao carregar a página
+applyListenersToAlunos();
     // Abrir modal para adicionar aluno
     btnOpenModal.addEventListener("click", () => {
         modal.style.display = "block";
