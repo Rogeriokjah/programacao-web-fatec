@@ -519,6 +519,19 @@ def buscar_disciplinas():
     # Retorna as disciplinas no formato JSON
     return jsonify([{'id': d.id, 'nome': d.nome, 'carga_horaria': d.carga_horaria} for d in disciplinas])
 
+@app.route('/buscar_disciplina', methods=['GET'])
+@login_required
+def buscar_disciplina():
+    disciplina_id = request.args.get('id', type=int)
+    disciplina = Disciplina.query.get_or_404(disciplina_id)
+    return jsonify({
+        "id": disciplina.id,
+        "nome": disciplina.nome,
+        "carga_horaria": disciplina.carga_horaria
+    })
+   
+    
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     app.run(debug=True)

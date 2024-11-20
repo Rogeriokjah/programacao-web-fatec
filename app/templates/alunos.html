@@ -3,6 +3,7 @@
 {% block content %}
 <div class="button-group">
     <button type="button" class="button large-button" id="openModal">Adicionar Novo Aluno</button>
+    <button type="button" class="button button-danger large-button" id="deleteSelected" disabled>Excluir Selecionados</button>
 </div>
 
 <div id="modal" class="modal">
@@ -68,16 +69,18 @@
 <table>
     <thead>
         <tr>
-            <th>Nome</th>
-            <th>CPF</th>
-            <th>Endereço</th>
-            <th>Curso</th>
-            <th>Ações</th>
+            <th style="width: 5%;"><input type="checkbox" id="selectAll"></th>
+            <th style="width: 20%;">Nome</th>
+            <th style="width: 15%;">CPF</th>
+            <th style="width: 30%;">Endereço</th>
+            <th style="width: 20%;">Curso</th>
+            <th style="width: 15%;">Ações</th>
         </tr>
     </thead>
     <tbody>
         {% for aluno in alunos %}
         <tr>
+            <td><input type="checkbox" class="selectItem" data-id="{{ aluno.id }}"></td>
             <td>{{ aluno.nome }}</td>
             <td>{{ aluno.cpf }}</td>
             <td>{{ aluno.endereco }}</td>
@@ -104,6 +107,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const resultadoCursos = document.querySelector("#resultadoCursos tbody");
     const cursoSelecionado = document.getElementById("cursoSelecionado");
     const cursoSelecionadoDisplay = document.getElementById("cursoSelecionadoDisplay");
+    const selectAllCheckbox = document.getElementById("selectAll");
+    const deleteSelectedButton = document.getElementById("deleteSelected");
 
     let timer;
 
@@ -217,6 +222,46 @@ document.addEventListener("DOMContentLoaded", () => {
                 .catch(() => alert("Erro ao buscar aluno."));
         });
     });
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener("change", function () {
+            document.querySelectorAll(".selectItem").forEach((item) => {
+                item.checked = selectAllCheckbox.checked;
+            });
+            toggleDeleteButton();
+        });
+    }
+
+    
+    document.querySelectorAll(".selectItem").forEach((item) => {
+        item.addEventListener("change", toggleDeleteButton);
+    });
+
+
+    function toggleDeleteButton() {
+        const selectedItems = document.querySelectorAll(
+            ".selectItem:checked"
+        );
+        if (deleteSelectedButton) {
+            deleteSelectedButton.disabled = selectedItems.length === 0;
+        }
+    }
+
+    deleteSelectedButton.addEventListener("click", () => {
+        const selectedIds = Array.from(document.querySelectorAll(".selectItem:checked")).map(item => item.dataset.id);
+        if (selectedIds.length > 0) {
+            fetch("{{ url_for('excluir_alunos_selecionados') }}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ alunos_ids: selectedIds })
+            })
+                .then(response => response.ok ? window.location.reload() : alert("Erro ao excluir alunos"))
+                .catch(() => alert("Erro na exclusão"));
+        }
+    });
+
+
+
 });
 </script>
 

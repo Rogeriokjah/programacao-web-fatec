@@ -27,7 +27,7 @@
             <td>{{ disciplina.nome }}</td>
             <td>{{ disciplina.carga_horaria }} horas</td>
             <td>
-                <a href="{{ url_for('editar_disciplina', id=disciplina.id) }}" class="button">Editar</a>
+                <button type="button" class="button edit-disciplina" data-id="{{ disciplina.id }}">Editar</button>
                 <form action="{{ url_for('excluir_disciplina', id=disciplina.id) }}" method="POST" style="display:inline;">
                     <button type="submit" class="button button-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</button>
                 </form>
@@ -41,7 +41,7 @@
 <div id="modal" class="modal">
     <div class="modal-content">
         <span class="close" id="closeModal">&times;</span>
-        <h2>Adicionar Nova Disciplina</h2>
+        <h2 id="modalTitle">Adicionar Nova Disciplina</h2>
         <form id="formAddDisciplina" method="POST" action="{{ url_for('criar_disciplina') }}">
             {{ form.hidden_tag() }}
             <div class="form-row">
@@ -55,7 +55,7 @@
                 </div>
             </div>
             <div class="button-group">
-                <button type="submit" class="button">Adicionar</button>
+                <button type="submit" class="button">Salvar</button>
                 <button type="button" class="button button-danger" id="cancelModal">Cancelar</button>
             </div>
         </form>
@@ -72,6 +72,8 @@
         const formDisciplina = document.getElementById("formAddDisciplina");
         const deleteSelectedButton = document.getElementById("deleteSelected");
         const selectAllCheckbox = document.getElementById("selectAll");
+
+        const modalTitle = document.getElementById("modalTitle");
     
         // Função para abrir o modal
         if (btnDisciplina) {
@@ -104,6 +106,28 @@
                 fecharModalDisciplina();
             }
         };
+
+         // Abrir modal para edição
+         document.querySelectorAll(".edit-disciplina").forEach(button => {
+            button.addEventListener("click", event => {
+                disciplinaid = button.dataset.id;
+                fetch(`/buscar_disciplina?id=${disciplinaid}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert("Erro ao buscar disciplina.");
+                            return;
+                        }
+                        modal.style.display = "block";
+                        modalTitle.textContent = "Editar Disciplina";
+                        formDisciplina.action = `/disciplinas/editar/${disciplinaid}`;
+                        document.getElementById("nome").value = data.nome;
+                        document.getElementById("carga_horaria").value = data.carga_horaria;
+                        })
+                    .catch(() => alert("Erro ao buscar disciplina."));
+            });
+        });
+
     
         // Lógica de seleção de disciplinas
         if (selectAllCheckbox) {
