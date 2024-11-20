@@ -8,6 +8,12 @@
     <button type="button" class="button large-button" id="openModal">Adicionar Novo Professor</button>
     <button type="button" class="button button-danger large-button" id="deleteSelected" disabled>Excluir Selecionados</button>
 </div>
+<br>
+<div>
+    <label for="pesquisar_professores">Pesquisar Professores</label>
+    <input type="text" id="pesquisar_professores" placeholder="Digite para buscar professores">
+</div>
+<br>
 
 <h2>Lista de Professores</h2>
 
@@ -22,7 +28,7 @@
             <th style="width: 10%;">Ações</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="professoresTableBody">
         {% for professor in professores %}
         <tr>
             <td><input type="checkbox" class="selectItem" data-id="{{ professor.id }}"></td>
@@ -36,9 +42,7 @@
                             {% for disciplina in professor.disciplinas %}
                             <tr>
                                 <td class="disciplina-nome">{{ disciplina.nome }}</td>
-                                <td class="disciplina-separador">
-                                    <div class="hifen">-</div>
-                                </td>
+                                <td class="disciplina-separador"><div class="hifen">-</div></td>
                                 <td class="disciplina-carga">{{ disciplina.carga_horaria }} horas</td>
                             </tr>
                             {% endfor %}
@@ -47,9 +51,9 @@
                 </div>
             </td>
             <td>
-            <button type="button" class="button edit-professor" data-id="{{ professor.id }}">Editar</button>
+                <button type="button" class="button edit-professor" data-id="{{ professor.id }}">Editar</button>
                 <form action="{{ url_for('excluir_professor', id=professor.id) }}" method="POST" style="display:inline;">
-                    <button type="submit" class="button button-danger">Excluir</button>
+                    <button type="submit" class="button button-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</button>
                 </form>
             </td>
         </tr>
@@ -149,9 +153,114 @@
         const btnOpenModal = document.getElementById("openModal");
         const selectAllCheckbox = document.getElementById("selectAll");
         const deleteSelectedButton = document.getElementById("deleteSelected");
-        
+        const searchProfessoresInput = document.getElementById("pesquisar_professores");
+        const professoresTableBody = document.getElementById("professoresTableBody");
+        let timer;
+
         let professorId = null; // Armazena o ID do professor em edição
+        // Função para buscar professores
+    searchProfessoresInput.addEventListener("input", () => {
+        clearTimeout(timer);
+        const query = searchProfessoresInput.value.trim();
+
+        if (query.length > 0) {
+            timer = setTimeout(() => buscarProfessores(query), 500);
+        } else {
+            location.reload(); // Recarregar para exibir lista completa
+        }
+    });
+
+    function buscarProfessores(query) {
+        fetch(`/buscar_professores?query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(professores => {
+                professoresTableBody.innerHTML = professores.map(professor => `
+                    <tr>
+                        <td><input type="checkbox" class="selectItem" data-id="${professor.id}"></td>
+                        <td>${professor.nome}</td>
+                        <td>${professor.telefone}</td>
+                        <td>${professor.usuario}</td>
+                        <td>
+                            <div class="disciplinas-container">
+                                <table class="inner-table">
+                                    <tbody>
+                                        ${professor.disciplinas.map(d => `
+                                            <tr>
+                                                <td class="disciplina-nome">${d.nome}</td>
+                                                <td class="disciplina-separador"><div class="hifen">-</div></td>
+                                                <td class="disciplina-carga">${d.carga_horaria} horas</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                        <td>
+                            <button type="button" class="button edit-professor" data-id="${professor.id}">Editar</button>
+                            <form action="/professores/excluir/${professor.id}" method="POST" style="display:inline;">
+                                <button type="submit" class="button button-danger" onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                `).join('');
     
+                // Reaplica os listeners para os botões "Editar" após renderizar os resultados
+                document.querySelectorAll(".edit-professor").forEach(button => {
+                    button.addEventListener("click", () => {
+                        const professorId = button.dataset.id;
+                        fetch(`/buscar_professor?id=${professorId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.error) {
+                                    alert("Erro ao buscar informações do professor.");
+                                    return;
+                                }
+    
+                                // Abre o modal e preenche os dados
+                                modal.style.display = "block";
+                                modalTitle.textContent = "Editar Professor";
+                                formProfessor.action = `/editar_professor/${professorId}`;
+                                document.getElementById("nome").value = data.nome;
+                                document.getElementById("telefone").value = data.telefone;
+                                document.getElementById("usuario").value = data.usuario;
+                                document.getElementById("senha").value = data.senha;
+    
+                                disciplinasSelecionadas.innerHTML = data.disciplinas
+                                    .map(d => `
+                                        <tr data-id="${d.id}">
+                                            <td>${d.nome}</td>
+                                            <td>${d.carga_horaria} horas</td>
+                                            <td>
+                                                <button type="button" class="button button-danger remove-disciplina">Remover</button>
+                                            </td>
+                                        </tr>`).join("");
+                                updateSelectedIds();
+                            })
+                            .catch(() => alert("Erro ao buscar informações do professor."));
+                    });
+                });
+            })
+            .catch(() => alert("Erro ao buscar professores."));
+    }
+    
+
+    // Adiciona os listeners novamente para os botões de editar após re-renderizar
+    function addEventListenersToEditButtons() {
+        document.querySelectorAll(".edit-professor").forEach(button => {
+            button.addEventListener("click", () => {
+                const professorId = button.dataset.id;
+                fetch(`/buscar_professor?id=${professorId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Adicione a lógica para preencher o modal de edição aqui
+                        console.log(data);
+                    })
+                    .catch(() => alert("Erro ao buscar informações do professor."));
+            });
+        });
+    }
+
+    addEventListenersToEditButtons();
         // Abrir modal para adicionar professor
         btnOpenModal.onclick = () => {
             modal.style.display = "block";

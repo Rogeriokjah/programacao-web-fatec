@@ -284,6 +284,23 @@ def buscar_professor():
         "disciplinas": disciplinas
     })
    
+@app.route('/buscar_professores', methods=['GET'])
+@login_required
+def buscar_professores():
+    query = request.args.get('query', '').strip()
+    limite = 10  # Limite de resultados
+    professores = Professor.query.filter(Professor.nome.ilike(f"%{query}%")).limit(limite).all()
+    return jsonify([
+        {
+            "id": professor.id,
+            "nome": professor.nome,
+            "telefone": professor.telefone,
+            "usuario": professor.usuario,
+            "disciplinas": [{"nome": d.nome, "carga_horaria": d.carga_horaria} for d in professor.disciplinas],
+        }
+        for professor in professores
+    ])
+
     
 @app.route('/adicionar_professor', methods=['POST'])
 def adicionar_professor():
